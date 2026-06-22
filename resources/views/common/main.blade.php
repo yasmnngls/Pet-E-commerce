@@ -11,7 +11,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body style="background-color:antiquewhite">
-    @include('common.header1')
+    @include('common.header')
     
     <div class = "my-3">
     @yield('content')

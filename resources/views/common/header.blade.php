@@ -60,8 +60,8 @@
         <div class="d-flex align-items-center gap-3">
             <img src="{{ asset('images/pfp.jpg') }}" alt="Profile" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm" style="object-fit: cover;">
             <div>
-                <h5 class="fw-bold m-0 text-dark">Carlos Jimenez</h5>
-                <span class="small text-muted">jimenez@gmail.com</span>
+                <h5 class="fw-bold m-0 text-dark">{{ auth()->user()->name }}</h5>
+                <span class="small text-muted">{{ auth()->user()->email }}</span>
             </div>
         </div>
     </div>
@@ -92,12 +92,14 @@
 
     <!-- Log Out -->
     <div class="mt-auto p-3">
-        <form method="POST" action="#" class="m-0">
+      @auth 
+        <form id="secure-logout-form" method="POST" action=" {{ route('logout') }}" class="m-0">
             @csrf
             <button type="submit" class="btn btn-light border w-100 fw-bold text-danger py-2">
                 <i class="bi bi-box-arrow-right me-2"></i> Log Out
             </button>
         </form>
+      @endauth
     </div>
 
   </div>
