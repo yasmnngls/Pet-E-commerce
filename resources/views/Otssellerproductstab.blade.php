@@ -14,6 +14,19 @@
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="custom-card p-4">
         <h5 class="mb-4 font-weight-bold">Your Product Listings</h5>
         
@@ -30,21 +43,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="ps-3">
-                            <img src="https://via.placeholder.com/70" class="product-img-thum" alt="Squeaky Dog Bone">
-                        </td>
-                        <td class="fw-bold">Squeaky Dog Bone</td>
-                        <td><span class="badge bg-secondary px-2.5 py-1.5"><i class="fa-solid fa-bone me-1"></i> DOG</span></td>
-                        <td>50</td>
-                        <td class="fw-bold">₱250.00</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editProductModal" onclick="populateEditModal('Squeaky Dog Bone', 'A classic, durable bone-shaped toy with a soft squeaker, perfect for active pups.', 'DOG', 50, 250.00)">
-                                <i class="fa-solid fa-pen"></i> EDIT
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> DELETE</button>
-                        </td>
-                    </tr>
+                    @forelse($products as $product)
+                        <tr>
+                            <td class="ps-3">
+                                <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/70' }}" class="product-img-thum" alt="{{ $product->name }}">
+                            </td>
+                            <td class="fw-bold">{{ $product->name }}</td>
+                            <td>
+                                <span class="badge bg-secondary px-2.5 py-1.5">
+                                    <i class="fa-solid fa-paw me-1"></i> {{ $product->category_name ?? 'General' }}
+                                </span>
+                            </td>
+                            <td>{{ $product->stock_quantity }}</td>
+                            <td class="fw-bold">₱{{ number_format($product->price, 2) }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editProductModal" onclick="populateEditModal({{ $product->id }}, @json($product->name), @json($product->description), {{ $product->category_id }}, {{ $product->stock_quantity }}, {{ $product->price }}, @json($product->image))">
+                                    <i class="fa-solid fa-pen"></i> EDIT
+                                </button>
+                                <form action="{{ route('seller.products.destroy', $product->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> DELETE</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted fw-bold">No products found yet. Add your first item with the button above.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -56,16 +83,17 @@
                 <div class="modal-header border-0 pb-0">
                     <h4 class="modal-title mx-auto fw-bold" style="color: var(--ppp-red)">Add New Product</h4>
                 </div>
-                <form action="#" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('seller.products.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="row g-4">
                             <div class="col-md-5">
-                                <div class="image-upload-box text-center p-3">
+                                <div class="image-upload-box text-center p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('imgUploadInput').click();">
                                     <i class="fa-solid fa-camera fa-2x mb-2" style="color: var(--ppp-red)"></i>
                                     <span class="fw-bold d-block mb-1" style="color: var(--ppp-red)">IMAGE UPLOAD</span>
-                                    <small class="text-muted">Click or Drag to Upload</small>
-                                    <input type="file" name="product_image" class="d-none" id="imgUploadInput">
+                                    <small class="text-muted">Click to Upload</small>
+                                    <input type="file" name="product_image" class="d-none" id="imgUploadInput" onchange="previewImage(this, 'addPreviewImage')">
+                                    <img id="addPreviewImage" class="img-fluid mt-2 d-none" style="max-height: 100px; object-fit: contain;">
                                 </div>
                             </div>
                             <div class="col-md-7">
@@ -79,17 +107,22 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Pet Category</label>
-                                    <select class="form-select" name="category" required>
+                                    <select class="form-select" name="category_id" required>
                                         <option value="" selected disabled>Select Pet Category</option>
-                                        <option value="DOG">Dog</option>
-                                        <option value="CAT">Cat</option>
-                                        <option value="ALL">All Pets</option>
+                                        @forelse($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @empty
+                                            <option value="1">Dog</option>
+                                            <option value="2">Cat</option>
+                                            <option value="3">Fish</option>
+                                            <option value="4">Bird</option>
+                                        @endforelse
                                     </select>
                                 </div>
                                 <div class="row">
                                     <div class="col-6">
                                         <label class="form-label fw-bold">Product Stocks</label>
-                                        <input type="number" class="form-control" name="stocks" value="0" min="0">
+                                        <input type="number" class="form-control" name="stock_quantity" value="0" min="0" required>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label fw-bold">Price (PHP)</label>
@@ -114,7 +147,7 @@
                 <div class="modal-header border-0 pb-0">
                     <h4 class="modal-title mx-auto fw-bold" style="color: var(--ppp-red)">Edit Product</h4>
                 </div>
-                <form action="#" method="POST" enctype="multipart/form-data">
+                <form id="editProductForm" action="" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
@@ -123,7 +156,8 @@
                                 <div class="p-3 border bg-white rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <img src="https://via.placeholder.com/150" id="editPreviewImage" class="img-fluid max-h-100" alt="Preview">
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-secondary w-100 fw-bold">CHANGE IMAGE</button>
+                                <label class="btn btn-sm btn-outline-secondary w-100 fw-bold mb-0" for="editProductImage">CHANGE IMAGE</label>
+                                <input type="file" name="product_image" id="editProductImage" class="d-none" onchange="previewImage(this, 'editPreviewImage')">
                             </div>
                             <div class="col-md-7">
                                 <div class="mb-3">
@@ -136,20 +170,25 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Pet Category</label>
-                                    <select class="form-select" id="editCategory" name="category" required>
-                                        <option value="DOG">DOG</option>
-                                        <option value="CAT">CAT</option>
-                                        <option value="ALL">ALL</option>
+                                    <select class="form-select" id="editCategory" name="category_id" required>
+                                        @forelse($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @empty
+                                            <option value="1">Dog</option>
+                                            <option value="2">Cat</option>
+                                            <option value="3">Fish</option>
+                                            <option value="4">Bird</option>
+                                        @endforelse
                                     </select>
                                 </div>
                                 <div class="row">
                                     <div class="col-6">
                                         <label class="form-label fw-bold">Product Stocks</label>
-                                        <input type="number" class="form-control" id="editStocks" name="stocks">
+                                        <input type="number" class="form-control" id="editStocks" name="stock_quantity" min="0" required>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label fw-bold">Price (PHP)</label>
-                                        <input type="number" class="form-control" id="editPrice" name="price" step="0.01">
+                                        <input type="number" class="form-control" id="editPrice" name="price" step="0.01" required>
                                     </div>
                                 </div>
                             </div>
@@ -167,12 +206,31 @@
 
 @section('scripts')
 <script>
-    function populateEditModal(name, desc, category, stocks, price) {
+    function populateEditModal(id, name, desc, category, stocks, price, image) {
+        // Dynamically updates form action routing targeted precisely to individual record IDs
+        document.getElementById('editProductForm').action = '/seller/products/' + id;
+        
         document.getElementById('editName').value = name;
         document.getElementById('editDescription').value = desc;
         document.getElementById('editCategory').value = category;
         document.getElementById('editStocks').value = stocks;
         document.getElementById('editPrice').value = price;
+        
+        // Render current or placeholder storage image paths
+        document.getElementById('editPreviewImage').src = image ? '{{ asset('storage') }}/' + image : 'https://via.placeholder.com/150';
+    }
+
+    // Helper previewing locally loaded file selections inside dialog structures immediately before uploading
+    function previewImage(input, previewElementId) {
+        const preview = document.getElementById(previewElementId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 </script>
 @endsection
