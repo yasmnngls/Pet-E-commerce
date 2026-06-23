@@ -44,20 +44,44 @@
                 </thead>
                 <tbody>
                     @forelse($products as $product)
+                        @php
+                            $productImageUrl = 'https://via.placeholder.com/70';
+                            if ($product->image && file_exists(public_path($product->image))) {
+                                $productImageUrl = asset($product->image);
+                            }
+
+                            $categoryIcon = 'fa-paw';
+                            switch(strtolower($product->category_name ?? '')) {
+                                case 'cat':
+                                case 'cats':
+                                    $categoryIcon = 'fa-cat';
+                                    break;
+                                case 'fish':
+                                case 'fishes':
+                                    $categoryIcon = 'fa-fish';
+                                    break;
+                                case 'bird':
+                                case 'birds':
+                                    $categoryIcon = 'fa-dove';
+                                    break;
+                            }
+                        @endphp
                         <tr>
                             <td class="ps-3">
-                                <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/70' }}" class="product-img-thum" alt="{{ $product->name }}">
+                                <button type="button" class="btn p-0 border-0 bg-transparent" onclick="showProductImageModal(@json($productImageUrl), @json($product->name))" data-bs-toggle="modal" data-bs-target="#productImageModal">
+                                    <img src="{{ $productImageUrl }}" class="product-img-thum" alt="{{ $product->name }}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+                                </button>
                             </td>
                             <td class="fw-bold">{{ $product->name }}</td>
                             <td>
                                 <span class="badge bg-secondary px-2.5 py-1.5">
-                                    <i class="fa-solid fa-paw me-1"></i> {{ $product->category_name ?? 'General' }}
+                                    <i class="fa-solid {{ $categoryIcon }} me-1"></i> {{ $product->category_name ?? 'General' }}
                                 </span>
                             </td>
                             <td>{{ $product->stock_quantity }}</td>
                             <td class="fw-bold">₱{{ number_format($product->price, 2) }}</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editProductModal" onclick="populateEditModal({{ $product->id }}, @json($product->name), @json($product->description), {{ $product->category_id }}, {{ $product->stock_quantity }}, {{ $product->price }}, @json($product->image))">
+                                <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editProductModal" onclick="populateEditModal({{ $product->id }}, @json($product->name), @json($product->description), {{ $product->category_id }}, {{ $product->stock_quantity }}, {{ $product->price }}, @json($productImageUrl))">
                                     <i class="fa-solid fa-pen"></i> EDIT
                                 </button>
                                 <form action="{{ route('seller.products.destroy', $product->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
@@ -77,6 +101,17 @@
         </div>
     </div>
 
+    <div class="modal fade" id="productImageModal" tabindex="-1" aria-labelledby="productImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-transparent border-0 shadow-none position-relative">
+                <div class="modal-body p-0 d-flex justify-content-center align-items-center" style="background: transparent;">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1055; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.8));"></button>
+                    <img id="productImageModalImg" src="" alt="Product Preview" class="img-fluid rounded" style="max-height: 85vh; max-width: 100%; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background-color: #fff; border: 4px solid #fff;">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content p-3">
@@ -88,12 +123,14 @@
                     <div class="modal-body">
                         <div class="row g-4">
                             <div class="col-md-5">
-                                <div class="image-upload-box text-center p-3 border rounded" style="cursor: pointer;" onclick="document.getElementById('imgUploadInput').click();">
-                                    <i class="fa-solid fa-camera fa-2x mb-2" style="color: var(--ppp-red)"></i>
-                                    <span class="fw-bold d-block mb-1" style="color: var(--ppp-red)">IMAGE UPLOAD</span>
-                                    <small class="text-muted">Click to Upload</small>
-                                    <input type="file" name="product_image" class="d-none" id="imgUploadInput" onchange="previewImage(this, 'addPreviewImage')">
-                                    <img id="addPreviewImage" class="img-fluid mt-2 d-none" style="max-height: 100px; object-fit: contain;">
+                                <div class="image-upload-box text-center p-3 border rounded d-flex flex-column justify-content-center align-items-center" style="cursor: pointer; min-height: 200px; background-color: #f8f9fa;" onclick="document.getElementById('imgUploadInput').click();">
+                                    <div id="addUploadPlaceholder">
+                                        <i class="fa-solid fa-camera fa-2x mb-2" style="color: var(--ppp-red)"></i>
+                                        <span class="fw-bold d-block mb-1" style="color: var(--ppp-red)">IMAGE UPLOAD</span>
+                                        <small class="text-muted">Click to Upload</small>
+                                    </div>
+                                    <input type="file" name="product_image" class="d-none" id="imgUploadInput" onchange="previewImage(this, 'addPreviewImage', 'addUploadPlaceholder')">
+                                    <img id="addPreviewImage" class="img-fluid d-none" style="width: 100%; max-height: 190px; object-fit: contain; border-radius: 6px;">
                                 </div>
                             </div>
                             <div class="col-md-7">
@@ -153,8 +190,8 @@
                     <div class="modal-body">
                         <div class="row g-4">
                             <div class="col-md-5 text-center">
-                                <div class="p-3 border bg-white rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    <img src="https://via.placeholder.com/150" id="editPreviewImage" class="img-fluid max-h-100" alt="Preview">
+                                <div class="border bg-light rounded-3 mb-3 d-flex align-items-center justify-content-center overflow-hidden" style="height: 200px; width: 100%; border: 1px solid #dee2e6;">
+                                    <img src="" id="editPreviewImage" class="w-100 h-100" alt="Product Image Preview" style="object-fit: contain; background-color: #f8f9fa;">
                                 </div>
                                 <label class="btn btn-sm btn-outline-secondary w-100 fw-bold mb-0" for="editProductImage">CHANGE IMAGE</label>
                                 <input type="file" name="product_image" id="editProductImage" class="d-none" onchange="previewImage(this, 'editPreviewImage')">
@@ -206,28 +243,35 @@
 
 @section('scripts')
 <script>
-    function populateEditModal(id, name, desc, category, stocks, price, image) {
-        // Dynamically updates form action routing targeted precisely to individual record IDs
+    function populateEditModal(id, name, desc, category, stocks, price, imageUrl) {
         document.getElementById('editProductForm').action = '/seller/products/' + id;
-        
         document.getElementById('editName').value = name;
         document.getElementById('editDescription').value = desc;
         document.getElementById('editCategory').value = category;
         document.getElementById('editStocks').value = stocks;
         document.getElementById('editPrice').value = price;
         
-        // Render current or placeholder storage image paths
-        document.getElementById('editPreviewImage').src = image ? '{{ asset('storage') }}/' + image : 'https://via.placeholder.com/150';
+        // Directly maps current asset file to image frame container layout
+        const previewElement = document.getElementById('editPreviewImage');
+        previewElement.src = imageUrl ? imageUrl : 'https://via.placeholder.com/150';
     }
 
-    // Helper previewing locally loaded file selections inside dialog structures immediately before uploading
-    function previewImage(input, previewElementId) {
+    function showProductImageModal(imageUrl, imageAlt) {
+        const previewImg = document.getElementById('productImageModalImg');
+        previewImg.src = imageUrl;
+        previewImg.alt = imageAlt;
+    }
+
+    function previewImage(input, previewElementId, placeholderId = null) {
         const preview = document.getElementById(previewElementId);
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 preview.classList.remove('d-none');
+                if (placeholderId) {
+                    document.getElementById(placeholderId).classList.add('d-none');
+                }
             }
             reader.readAsDataURL(input.files[0]);
         }

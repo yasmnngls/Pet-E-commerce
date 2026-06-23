@@ -140,8 +140,8 @@
                         <div class="mb-3 row align-items-center">
                             <label class="col-sm-4 col-form-label fw-bold">Enter Withdrawal Amount</label>
                             <div class="col-sm-8">
-                                <input type="number" name="amount" class="form-control border-dark" id="withdrawAmount" value="{{ $availableBalance }}" min="100" max="{{ $availableBalance }}" step="0.01" required oninput="calculateTransactionSummary()">
-                                <small class="text-muted">Minimum ₱100.00</small>
+                                <input type="number" name="amount" class="form-control border-dark" id="withdrawAmount" value="{{ min($availableBalance, 100000) }}" min="100" max="100000" step="0.01" required oninput="calculateTransactionSummary()">
+                                <small class="text-muted">Minimum ₱100.00, maximum ₱100,000.00 per withdrawal request.</small>
                             </div>
                         </div>
 

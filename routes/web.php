@@ -5,11 +5,10 @@ use App\Http\Controllers\AdminDashBoardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OtsSellerProductController;
 use App\Http\Controllers\OtsSellerOrderController;
 use App\Http\Controllers\OtsSellerEarningsController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -46,17 +45,16 @@ Route::prefix('seller')->group(function () {
     Route::post('/products', [OtsSellerProductController::class, 'store'])->name('seller.products.store');
     Route::put('/products/{id}', [OtsSellerProductController::class, 'update'])->name('seller.products.update');
     Route::delete('/products/{id}', [OtsSellerProductController::class, 'destroy'])->name('seller.products.destroy');
-
+    
     // Order Fulfillment Processing System
     Route::get('/orders', [OtsSellerOrderController::class, 'index'])->name('seller.orders');
     Route::patch('/orders/{id}/status', [OtsSellerOrderController::class, 'updateStatus'])->name('seller.orders.update');
+    Route::delete('/orders/{id}', [OtsSellerOrderController::class, 'cancel'])->name('seller.orders.cancel');
 
     // Balance Sheet & Payout Mechanics
     Route::get('/earnings', [OtsSellerEarningsController::class, 'index'])->name('seller.earnings');
     Route::post('/earnings/withdraw', [OtsSellerEarningsController::class, 'storeWithdrawal'])->name('seller.earnings.withdraw');
-//Logout Post
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
+});
 
 // ADMIN ADMIN ADMIN //
 //Admin Hidden Routes
