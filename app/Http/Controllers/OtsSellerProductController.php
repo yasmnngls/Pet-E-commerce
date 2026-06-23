@@ -44,9 +44,16 @@ class OtsSellerProductController extends Controller
         $sellerId = Auth::id() ?? 1;
         $imagePath = null;
 
-        // Handle File Upload to local public storage (or Supabase Bucket if configured)
+        // Handle File Upload to public/images/products so product rows can load files directly
         if ($request->hasFile('product_image')) {
-            $imagePath = $request->file('product_image')->store('products', 'public');
+            $image = $request->file('product_image');
+            $folder = public_path('images/products');
+            if (!is_dir($folder)) {
+                mkdir($folder, 0755, true);
+            }
+            $imageName = uniqid('product_') . '.' . $image->getClientOriginalExtension();
+            $image->move($folder, $imageName);
+            $imagePath = 'images/products/' . $imageName;
         }
 
         DB::table('products')->insert([
@@ -75,6 +82,7 @@ class OtsSellerProductController extends Controller
             'category_id' => 'required|integer',
             'stock_quantity' => 'required|integer|min:0',
             'price' => 'required|numeric|min:0',
+            'product_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
 
         $sellerId = Auth::id() ?? 1;
@@ -85,7 +93,7 @@ class OtsSellerProductController extends Controller
             return redirect()->back()->with('error', 'Unauthorized or product not found.');
         }
 
-        DB::table('products')->where('id', $id)->update([
+        $updateData = [
             'name' => $request->name,
             'slug' => Str::slug($request->name) . '-' . $id,
             'category_id' => $request->category_id,
@@ -93,7 +101,20 @@ class OtsSellerProductController extends Controller
             'price' => $request->price,
             'stock_quantity' => $request->stock_quantity,
             'updated_at' => now()
-        ]);
+        ];
+
+        if ($request->hasFile('product_image')) {
+            $image = $request->file('product_image');
+            $folder = public_path('images/products');
+            if (!is_dir($folder)) {
+                mkdir($folder, 0755, true);
+            }
+            $imageName = uniqid('product_') . '.' . $image->getClientOriginalExtension();
+            $image->move($folder, $imageName);
+            $updateData['image'] = 'images/products/' . $imageName;
+        }
+
+        DB::table('products')->where('id', $id)->update($updateData);
 
         return redirect()->back()->with('success', 'Product specifications updated successfully!');
     }

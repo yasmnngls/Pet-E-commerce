@@ -10,21 +10,25 @@ class OtsSellerOrderController extends Controller
 {
     public function index()
     {
-        $sellerId = Auth::id() ?? 1;
+        // Fallback to 4 to match your active PowerPuff test store account ID
+        $sellerId = Auth::id() ?? 4; 
 
-        // Advanced cross-table compilation matching structural requirements
+        // Changed joins to leftJoin to safely render test records even if address components are null
         $orders = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('users', 'orders.user_id', '=', 'users.id')
-            ->join('addresses', 'orders.address_id', '=', 'addresses.id')
-            ->join('products', 'order_items.item_id', '=', 'products.id')
+            ->leftJoin('addresses', 'orders.address_id', '=', 'addresses.id')
+            ->leftJoin('products', 'order_items.item_id', '=', 'products.id')
             ->where('order_items.seller_id', $sellerId)
+            ->whereIn('order_items.status', ['pending', 'shipped', 'delivered']) // Included delivered for testing
             ->select(
                 'order_items.id as order_item_id',
                 'order_items.quantity',
+                'order_items.price',
                 'order_items.status as item_status',
                 'orders.order_number',
                 'orders.tracking_number',
+                'orders.created_at as order_date',
                 'users.name as buyer_name',
                 'addresses.street',
                 'addresses.barangay',
@@ -47,7 +51,7 @@ class OtsSellerOrderController extends Controller
             'tracking_number' => 'nullable|string|max:255'
         ]);
 
-        $sellerId = Auth::id() ?? 1;
+        $sellerId = Auth::id() ?? 4;
 
         // Multi-tenant check layer protection
         $orderItem = DB::table('order_items')->where('id', $id)->where('seller_id', $sellerId)->first();
@@ -71,5 +75,27 @@ class OtsSellerOrderController extends Controller
         }
 
         return redirect()->back()->with('success', 'Order state updated, customer notified.');
+    }
+
+    public function cancel($id)
+    {
+        $sellerId = Auth::id() ?? 4;
+
+        $orderItem = DB::table('order_items')->where('id', $id)->where('seller_id', $sellerId)->first();
+        if (!$orderItem) {
+            return redirect()->back()->with('error', 'Unable to locate the order item to cancel.');
+        }
+
+        DB::table('order_items')->where('id', $id)->delete();
+
+        $remainingItems = DB::table('order_items')->where('order_id', $orderItem->order_id)->count();
+        if ($remainingItems === 0) {
+            DB::table('orders')->where('id', $orderItem->order_id)->update([
+                'status' => 'cancelled',
+                'updated_at' => now(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Order item has been cancelled successfully.');
     }
 }

@@ -40,10 +40,17 @@
                 </thead>
                 <tbody>
                     @forelse($orders as $order)
+                        @php
+                            $orderImageUrl = $order->product_image
+                                ? (file_exists(storage_path('app/public/' . $order->product_image))
+                                    ? asset('storage/' . $order->product_image)
+                                    : (file_exists(public_path($order->product_image)) ? asset($order->product_image) : 'https://via.placeholder.com/70'))
+                                : 'https://via.placeholder.com/70';
+                        @endphp
                         <tr>
                             <td class="ps-3">
                                 <div class="d-flex align-items-center gap-3">
-                                    <img src="{{ $order->product_image ? asset('storage/' . $order->product_image) : 'https://via.placeholder.com/70' }}" class="product-img-thum" alt="Product Image">
+                                    <img src="{{ $orderImageUrl }}" class="product-img-thum" alt="Product Image">
                                     <div>
                                         <span class="fw-bold d-block">{{ $order->product_name }}</span>
                                         <small class="text-muted d-block">Order Ref: #{{ $order->order_number }}</small>
@@ -57,27 +64,32 @@
                                     {{ $order->street }}, {{ $order->barangay }}, {{ $order->city }}, {{ $order->province }}
                                 </div>
                             </td>
-                            
-                            <form action="/seller/orders/{{ $order->order_item_id }}/status" method="POST">
-                                @csrf
-                                @method('PATCH')
-                                <td>
+                            <td>
+                                <form action="{{ route('seller.orders.update', $order->order_item_id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
                                     <select name="status" class="form-select form-select-sm border-dark status-dropdown" style="max-width: 150px; background-color: var(--ppp-bg-beige);" onchange="toggleTrackingField(this)">
                                         <option value="pending" {{ $order->item_status == 'pending' ? 'selected' : '' }}>Pending</option>
                                         <option value="shipped" {{ $order->item_status == 'shipped' ? 'selected' : '' }}>Shipped</option>
                                         <option value="delivered" {{ $order->item_status == 'delivered' ? 'selected' : '' }}>Delivered</option>
                                     </select>
-                                    
+
                                     <div class="tracking-container mt-2 {{ $order->item_status == 'shipped' ? '' : 'd-none' }}">
                                         <input type="text" name="tracking_number" class="form-control form-control-sm" value="{{ $order->tracking_number }}" placeholder="Tracking Code">
                                     </div>
-                                </td>
-                                <td class="text-center">
-                                    <button type="submit" class="btn btn-sm btn-ppp-red px-3 py-1.5 fw-bold">
+
+                                    <button type="submit" class="btn btn-sm btn-ppp-red mt-2 px-3 py-1.5 fw-bold">
                                         SAVE/UPDATE
                                     </button>
-                                </td>
-                            </form>
+                                </form>
+                            </td>
+                            <td class="text-center">
+                                <form action="{{ route('seller.orders.cancel', $order->order_item_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this order item?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1.5 fw-bold">CANCEL</button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
