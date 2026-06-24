@@ -2,11 +2,6 @@
 @section('title', 'Shop')
 @section('content')
 
-@php
-    $currentCategory = $catName ?? $query ?? null;
-    $currentPetType  = $petType ?? null;
-@endphp
-
 <div class="container mt-5 mb-5">
 
     {{-- Page Header --}}

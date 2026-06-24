@@ -30,10 +30,9 @@
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <h5 class="fw-bold mb-3" style="color: brown;"><i class="bi bi-geo-alt-fill me-2"></i>Delivery Address</h5>
 
-                    {{-- Saved addresses --}}
-                    @if($savedAddresses->isNotEmpty())
+                    @if(!empty($savedAddresses) && $savedAddresses->isNotEmpty())
                         <p class="small fw-medium text-muted mb-2">Select a saved address, or fill in a new one below:</p>
-                        @foreach($savedAddresses as $addr)
+                        @foreach($savedAddresses ?? collect() as $addr)
                             <div class="form-check border rounded-3 p-3 mb-2">
                                 <input class="form-check-input" type="radio" name="address_option"
                                        id="addr_{{ $addr->id }}" value="saved_{{ $addr->id }}"
@@ -54,7 +53,6 @@
                         <input type="hidden" name="address_option" value="new">
                     @endif
 
-                    {{-- New address fields — always visible; only used when "new" is selected --}}
                     <p class="small fw-medium text-muted mb-2 mt-1">New address:</p>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -93,7 +91,6 @@
                 {{-- Payment Method --}}
                 <div class="card border-0 shadow-sm rounded-4 p-4">
                     <h5 class="fw-bold mb-3" style="color: brown;"><i class="bi bi-credit-card-fill me-2"></i>Payment Method</h5>
-
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="d-flex align-items-center gap-3 border rounded-3 p-3" style="cursor: pointer;">
@@ -139,23 +136,25 @@
                     <h5 class="fw-bold mb-3" style="color: brown;">Order Summary</h5>
 
                     <div class="d-flex flex-column gap-3 mb-3">
-                        @foreach($items as $cartItem)
+                        @foreach($items ?? collect() as $cartItem)
                             @php $product = $cartItem->item; @endphp
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="{{ asset($product->image ?? 'images/pet3.jpg') }}"
-                                     alt="{{ $product->name }}"
-                                     class="rounded-3 border bg-light p-1"
-                                     style="width: 55px; height: 55px; object-fit: contain;">
-                                <div class="flex-grow-1">
-                                    <p class="mb-0 fw-bold small text-dark" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        {{ $product->name }}
-                                    </p>
-                                    <small class="text-muted">Qty: {{ $cartItem->quantity }}</small>
+                            @if($product)
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="{{ asset($product->image ?? 'images/pet3.jpg') }}"
+                                         alt="{{ $product->name }}"
+                                         class="rounded-3 border bg-light p-1"
+                                         style="width: 55px; height: 55px; object-fit: contain;">
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0 fw-bold small text-dark" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            {{ $product->name }}
+                                        </p>
+                                        <small class="text-muted">Qty: {{ $cartItem->quantity }}</small>
+                                    </div>
+                                    <span class="fw-bold small" style="color: brown;">
+                                        ₱{{ number_format($product->price * $cartItem->quantity, 2) }}
+                                    </span>
                                 </div>
-                                <span class="fw-bold small" style="color: brown;">
-                                    ₱{{ number_format($product->price * $cartItem->quantity, 2) }}
-                                </span>
-                            </div>
+                            @endif
                         @endforeach
                     </div>
 
@@ -163,7 +162,7 @@
 
                     <div class="d-flex justify-content-between small text-muted mb-2">
                         <span>Subtotal</span>
-                        <span>₱{{ number_format($subtotal, 2) }}</span>
+                        <span>₱{{ number_format($subtotal ?? 0, 2) }}</span>
                     </div>
                     <div class="d-flex justify-content-between small text-muted mb-3">
                         <span>Shipping</span>
@@ -174,7 +173,7 @@
 
                     <div class="d-flex justify-content-between fw-bold mb-4">
                         <span>Total</span>
-                        <span style="color: brown; font-size: 1.2rem;">₱{{ number_format($subtotal, 2) }}</span>
+                        <span style="color: brown; font-size: 1.2rem;">₱{{ number_format($subtotal ?? 0, 2) }}</span>
                     </div>
 
                     <button type="submit" class="btn text-white w-100 rounded-pill fw-bold py-2 shadow-sm"

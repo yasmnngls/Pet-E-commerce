@@ -19,13 +19,17 @@ class OtsSellerProductController extends Controller
             ->latest()
             ->get()
             ->map(function ($product) {
-                $product->category_name = $product->category->name ?? 'General';
+                $petName = $product->category->name ?? 'General';
+                $productTypeName = $product->product_category ?? null;
+                $product->category_name = $productTypeName ? $petName . ' / ' . $productTypeName : $petName;
                 return $product;
             });
 
         $categories = Category::all();
+        $petCategories = Category::where('type', 'pet')->get();
+        $productCategories = Category::where('type', 'product')->get();
 
-        return view('Otssellerproductstab', compact('products', 'categories'));
+        return view('Otssellerproductstab', compact('products', 'categories', 'petCategories', 'productCategories'));
     }
     // You also need to secure your edit/update/delete routes!
     public function edit($id)
@@ -59,14 +63,15 @@ class OtsSellerProductController extends Controller
         }
         DB::table('products')->insert([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . time(), // Enforces unique constraint safety
+            'slug' => Str::slug($request->name) . '-' . time(),
             'category_id' => $request->category_id,
+            'product_category' => $request->product_category,
             'seller_id' => $sellerId,
             'description' => $request->description,
             'price' => $request->price,
             'stock_quantity' => $request->stock_quantity,
             'image' => $imagePath,
-            'status' => 'active', // Set active automatically for trusted sellers
+            'status' => 'pending',
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -81,6 +86,7 @@ class OtsSellerProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'required|integer',
+            'product_category' => 'required|string|max:255',
             'stock_quantity' => 'required|integer|min:0',
             'price' => 'required|numeric|min:0',
             'product_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
@@ -102,6 +108,7 @@ class OtsSellerProductController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name) . '-' . $id,
             'category_id' => $request->category_id,
+            'product_category' => $request->product_category,
             'description' => $request->description,
             'price' => $request->price,
             'stock_quantity' => $request->stock_quantity,

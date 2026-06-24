@@ -12,6 +12,7 @@ class Product extends Model
         'price',
         'stock_quantity',
         'category_id',
+        'product_category',
         'seller_id',
         'status',
         'image',
@@ -42,14 +43,34 @@ class Product extends Model
         return $this->morphMany(OrderItem::class, 'item');
     }
 
+    public function getFeaturedImageAttribute()
+    {
+        if (empty($this->image)) {
+            return asset('images/pet3.jpg');
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        $path = ltrim($this->image, '/');
+        $filename = basename($path);
+
+        if ($filename) {
+            return asset('banner/' . $filename);
+        }
+
+        return asset('images/pet3.jpg');
+    }
+
     public function getFeaturedImageUrlAttribute()
     {
-        return $this->image ? asset($this->image) : asset('storage/images/pet3.jpg');
+        return $this->featured_image;
     }
 
     public function getImageUrlAttribute()
     {
-        return $this->image ? asset($this->image) : asset('storage/images/pet3.jpg');
+        return $this->featured_image;
     }
 
     public function getCategoryDisplayNameAttribute()

@@ -92,8 +92,11 @@
             </div>
         </div>
 
-        <div class="col-lg-8 d-flex align-items-center justify-content-center" style="background-color: antiquewhite;">
-            <img src="{{ asset('images/snoopy3.jpg') }}" alt="Shopping Illustration" class="img-fluid" style="max-width: 75%;">
+        <div class="col-md-7 col-lg-8 d-none d-md-block position-relative vh-100 overflow-hidden" style="background-color: #F8EFE4;">
+            <img src="{{ asset('storage/banners/login.png') }}" 
+                 alt="Shopping Illustration" 
+                 class="position-absolute top-0 start-0 w-100 h-100" 
+                 style="object-fit: cover; object-position: center;">
         </div>
         
     </div>

@@ -22,7 +22,7 @@
         {{-- LEFT: Product Image --}}
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white p-4 text-center">
-                <img src="{{ asset($product->image ?? 'images/pet3.jpg') }}"
+                <img src="{{ $product->featured_image }}"
                      alt="{{ $product->name }}"
                      class="img-fluid mx-auto"
                      style="max-height: 380px; object-fit: contain;">

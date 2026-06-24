@@ -47,6 +47,10 @@
 
     <div class="custom-card p-4">
         <h5 class="mb-4 font-weight-bold">Your Product Listings</h5>
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>New products are submitted for admin review and will only appear publicly after approval.</span>
+        </div>
         
         <div class="table-responsive">
             <table class="table align-middle">
@@ -214,13 +218,28 @@
                                     <label class="form-label fw-bold">Pet Category</label>
                                     <select class="form-select" name="category_id" required>
                                         <option value="" selected disabled>Select Pet Category</option>
-                                        @forelse($categories as $category)
+                                        @forelse($petCategories as $category)
                                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                                         @empty
                                             <option value="1">Dog</option>
                                             <option value="2">Cat</option>
                                             <option value="3">Fish</option>
                                             <option value="4">Bird</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Product Category</label>
+                                    <select class="form-select" name="product_category" required>
+                                        <option value="" selected disabled>Select Product Category</option>
+                                        @forelse($productCategories as $category)
+                                            <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                        @empty
+                                            <option value="Food">Food</option>
+                                            <option value="Clothes">Clothes</option>
+                                            <option value="Accessories">Accessories</option>
+                                            <option value="Grooming Products">Grooming Products</option>
+                                            <option value="Medicine">Medicine</option>
                                         @endforelse
                                     </select>
                                 </div>
@@ -276,13 +295,27 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Pet Category</label>
                                     <select class="form-select" id="editCategory" name="category_id" required>
-                                        @forelse($categories as $category)
+                                        @forelse($petCategories as $category)
                                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                                         @empty
                                             <option value="1">Dog</option>
                                             <option value="2">Cat</option>
                                             <option value="3">Fish</option>
                                             <option value="4">Bird</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Product Category</label>
+                                    <select class="form-select" id="editProductCategory" name="product_category" required>
+                                        @forelse($productCategories as $category)
+                                            <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                        @empty
+                                            <option value="Food">Food</option>
+                                            <option value="Clothes">Clothes</option>
+                                            <option value="Accessories">Accessories</option>
+                                            <option value="Grooming Products">Grooming Products</option>
+                                            <option value="Medicine">Medicine</option>
                                         @endforelse
                                     </select>
                                 </div>
@@ -322,6 +355,7 @@
                 const name = this.getAttribute('data-name');
                 const desc = this.getAttribute('data-description');
                 const category = this.getAttribute('data-category');
+                const productCategory = this.getAttribute('data-product-category');
                 const stocks = this.getAttribute('data-stocks');
                 const price = this.getAttribute('data-price');
                 const imageUrl = this.getAttribute('data-image');
@@ -330,6 +364,7 @@
                 document.getElementById('editName').value = name;
                 document.getElementById('editDescription').value = desc;
                 document.getElementById('editCategory').value = category;
+                document.getElementById('editProductCategory').value = productCategory;
                 document.getElementById('editStocks').value = stocks;
                 document.getElementById('editPrice').value = price;
                 

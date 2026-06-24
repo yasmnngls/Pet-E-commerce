@@ -15,9 +15,6 @@ use App\Models\Product;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Show the checkout page.
-     */
     public function index()
     {
         $cart = Cart::where('user_id', Auth::id())->first();
@@ -35,19 +32,15 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
-        $subtotal        = $items->sum(fn($ci) => $ci->item->price * $ci->quantity);
-        $savedAddresses  = Address::where('user_id', Auth::id())->get();
+        $subtotal       = $items->sum(fn($ci) => $ci->item->price * $ci->quantity);
+        $savedAddresses = Address::where('user_id', Auth::id())->get();
 
         return view('checkout', compact('items', 'subtotal', 'savedAddresses'));
     }
 
-    /**
-     * Place the order.
-     * address_option is either "new" or "saved_{id}".
-     */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'address_option' => 'required|string',
             'payment_method' => 'required|in:cod,gcash,card',
             'full_name' => 'required_if:address_option,new|nullable|string|max:255',
@@ -57,10 +50,13 @@ class CheckoutController extends Controller
             'city'      => 'required_if:address_option,new|nullable|string|max:255',
             'province'  => 'required_if:address_option,new|nullable|string|max:255',
         ]);
+        // On validation failure Laravel automatically redirects back to checkout.index
+        // (the previous GET route) with errors and old input — index() then re-sets
+        // all variables including $savedAddresses before the blade renders.
 
         $userId = Auth::id();
 
-        // 1. Resolve Address
+        // Resolve address
         if ($request->address_option === 'new') {
             $address = Address::create(array_merge(
                 $request->only(['full_name', 'phone', 'street', 'barangay', 'city', 'province']),
@@ -68,12 +64,15 @@ class CheckoutController extends Controller
             ));
         } else {
             $addressId = (int) str_replace('saved_', '', $request->address_option);
-            $address = Address::where('id', $addressId)->where('user_id', $userId)->firstOrFail();
+            $address   = Address::where('id', $addressId)->where('user_id', $userId)->firstOrFail();
         }
 
-        // 2. Load Cart
-        $cart = Cart::where('user_id', $userId)->firstOrFail();
-        $cartItems = CartItem::where('cart_id', $cart->id)->with('item')->get()->filter(fn($ci) => $ci->item !== null);
+        // Load cart
+        $cart      = Cart::where('user_id', $userId)->firstOrFail();
+        $cartItems = CartItem::where('cart_id', $cart->id)
+            ->with('item')
+            ->get()
+            ->filter(fn($ci) => $ci->item !== null);
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
@@ -82,7 +81,6 @@ class CheckoutController extends Controller
         $total = $cartItems->sum(fn($ci) => $ci->item->price * $ci->quantity);
 
         try {
-            // 3. Create Order in Transaction with Row Locking
             $order = DB::transaction(function () use ($userId, $address, $cartItems, $total, $request, $cart) {
 
                 $order = Order::create([
@@ -95,12 +93,10 @@ class CheckoutController extends Controller
                 ]);
 
                 foreach ($cartItems as $ci) {
-                    // LOCK FOR UPDATE: Prevents other transactions from modifying this row until this transaction commits
                     $product = Product::where('id', $ci->item_id)->lockForUpdate()->first();
 
-                    // Final strict stock check
                     if ($product->stock_quantity < $ci->quantity) {
-                        throw new \Exception("Sorry, {$product->name} just went out of stock.");
+                        throw new \Exception("Sorry, \"{$product->name}\" just went out of stock.");
                     }
 
                     OrderItem::create([
@@ -121,30 +117,20 @@ class CheckoutController extends Controller
                 return $order;
             });
 
-            // Redirect to a mocked payment page for gcash/card, or straight to confirmation for COD
-            if (in_array($request->payment_method, ['gcash', 'card'])) {
-                // For now, redirect to confirmation, but this is where you'd redirect to PayMongo/Stripe
-                return redirect()->route('checkout.confirmation', $order->id)->with('success', 'Redirecting to payment gateway...');
-            }
-
             return redirect()->route('checkout.confirmation', $order->id);
 
         } catch (\Exception $e) {
-            // If stock was insufficient, the transaction automatically rolls back.
             return redirect()->route('cart.index')->with('error', $e->getMessage());
         }
     }
 
-    /**
-     * Order confirmation page.
-     */
-    public function confirmation($orderId)
+    public function confirmation($id)
     {
         $order = Order::with(['items.item', 'address'])
-            ->where('id', $orderId)
+            ->where('id', $id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        return view('checkout-confirmation', compact('order'));
+        return view('checkout', compact('order'));
     }
 }

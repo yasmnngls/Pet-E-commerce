@@ -11,9 +11,21 @@
           Categories
         </button>
         <ul class="dropdown-menu shadow-sm mt-2">
-          <li><a class="dropdown-item" href="#">Pet Food</a></li>
-          <li><a class="dropdown-item" href="#">Toys & Accessories</a></li>
-          <li><a class="dropdown-item" href="#">Grooming</a></li>
+          <li><h6 class="dropdown-header">Pet Categories</h6></li>
+          @php
+            $petCategories = \App\Models\Category::where('type', 'pet')->get();
+          @endphp
+          @foreach($petCategories as $petCategory)
+            <li><a class="dropdown-item" href="#">{{ $petCategory->name }}</a></li>
+          @endforeach
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Product Categories</h6></li>
+          @php
+            $productCategories = \App\Models\Category::where('type', 'product')->get();
+          @endphp
+          @foreach($productCategories as $productCategory)
+            <li><a class="dropdown-item" href="#">{{ $productCategory->name }}</a></li>
+          @endforeach
         </ul>
       </div>
     </div>
@@ -43,7 +55,8 @@
       <div class="vr text-white opacity-75" style="min-height: 35px; width: 2px;"></div>
 
       <a href="#profileOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="profileOffcanvas" style="outline: none;">
-        <img src="{{ asset('images/pfp.jpg') }}" alt="Profile" width="45" height="45" class="rounded-circle border border-2 border-light shadow-sm" style="object-fit: cover;">
+        <img src="{{ Auth::check() && Auth::user()->profile_picture ? asset(Auth::user()->profile_picture) : asset('storage/banners/pet1.png') }}" 
+             alt="Profile" width="45" height="45" class="rounded-circle border border-2 border-light shadow-sm" style="object-fit: cover;">
       </a>
     </div>
 
@@ -64,7 +77,8 @@
     @auth
     <div class="p-4" style="background-color: #F5EFE6;">
         <div class="d-flex align-items-center gap-3">
-            <img src="{{ asset('images/pfp.jpg') }}" alt="Profile" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm" style="object-fit: cover;">
+            <img src="{{ auth()->user()->profile_picture ? asset(auth()->user()->profile_picture) : asset('storage/banners/pet1.png') }}" 
+                 alt="Profile" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm" style="object-fit: cover;">
             <div>
                 <h5 class="fw-bold m-0 text-dark">{{ auth()->user()->name }}</h5>
                 <span class="small text-muted">{{ auth()->user()->email }}</span>
@@ -79,7 +93,7 @@
         <a href="#" class="list-group-item list-group-item-action py-3 border-0">
             <i class="bi bi-heart me-3 text-muted"></i> Wishlist
         </a>
-        <a href="#" class="list-group-item list-group-item-action py-3 border-0">
+        <a href="{{ route('account.settings') }}" class="list-group-item list-group-item-action py-3 border-0">
             <i class="bi bi-gear me-3 text-muted"></i> Account Settings
         </a>
         
@@ -101,7 +115,7 @@
                     <div class="card-body py-3">
                         <h6 class="fw-bold" style="color: #a52a2a;">Start Selling!</h6>
                         <p class="small text-muted mb-2">Turn your pet passion into profit.</p>
-                        <a href="{{route('vendor.step1')}}" class="btn btn-sm text-white w-100 fw-bold" style="background-color: #a52a2a;">Apply as a Vendor</a>
+                        <a href="{{ route('vendor.step1') }}" class="btn btn-sm text-white w-100 fw-bold" style="background-color: #a52a2a;">Apply as a Vendor</a>
                     </div>
                 </div>
             </div>
