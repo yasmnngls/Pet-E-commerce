@@ -45,9 +45,12 @@
                 <tbody>
                     @forelse($products as $product)
                         @php
-                            $productImageUrl = 'https://via.placeholder.com/70';
                             if ($product->image && file_exists(public_path($product->image))) {
                                 $productImageUrl = asset($product->image);
+                            } elseif ($product->image && file_exists(storage_path('app/public/' . str_replace('storage/', '', $product->image)))) {
+                                $productImageUrl = asset('storage/' . str_replace('storage/', '', $product->image));
+                            } else {
+                                $productImageUrl = asset('images/default-product.png'); 
                             }
 
                             $categoryIcon = 'fa-paw';
@@ -81,7 +84,17 @@
                             <td>{{ $product->stock_quantity }}</td>
                             <td class="fw-bold">₱{{ number_format($product->price, 2) }}</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editProductModal" onclick="populateEditModal({{ $product->id }}, @json($product->name), @json($product->description), {{ $product->category_id }}, {{ $product->stock_quantity }}, {{ $product->price }}, @json($productImageUrl))">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary me-1 edit-product-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editProductModal"
+                                        data-id="{{ $product->id }}"
+                                        data-name="{{ $product->name }}"
+                                        data-description="{{ $product->description }}"
+                                        data-category="{{ $product->category_id }}"
+                                        data-stocks="{{ $product->stock_quantity }}"
+                                        data-price="{{ $product->price }}"
+                                        data-image="{{ $productImageUrl }}">
                                     <i class="fa-solid fa-pen"></i> EDIT
                                 </button>
                                 <form action="{{ route('seller.products.destroy', $product->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
@@ -101,10 +114,10 @@
         </div>
     </div>
 
-    <div class="modal fade" id="productImageModal" tabindex="-1" aria-labelledby="productImageModalLabel" aria-hidden="true">
+    <div class="modal fade" id="productImageModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-transparent border-0 shadow-none position-relative">
-                <div class="modal-body p-0 d-flex justify-content-center align-items-center" style="background: transparent;">
+                <div class="modal-body p-0 d-flex justify-content-center align-items-center">
                     <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1055; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.8));"></button>
                     <img id="productImageModalImg" src="" alt="Product Preview" class="img-fluid rounded" style="max-height: 85vh; max-width: 100%; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background-color: #fff; border: 4px solid #fff;">
                 </div>
@@ -243,18 +256,37 @@
 
 @section('scripts')
 <script>
-    function populateEditModal(id, name, desc, category, stocks, price, imageUrl) {
-        document.getElementById('editProductForm').action = '/seller/products/' + id;
-        document.getElementById('editName').value = name;
-        document.getElementById('editDescription').value = desc;
-        document.getElementById('editCategory').value = category;
-        document.getElementById('editStocks').value = stocks;
-        document.getElementById('editPrice').value = price;
+    // Robust Data-Attribute Event Binding Setup
+    document.addEventListener('DOMContentLoaded', function () {
+        const editButtons = document.querySelectorAll('.edit-product-btn');
         
-        // Directly maps current asset file to image frame container layout
-        const previewElement = document.getElementById('editPreviewImage');
-        previewElement.src = imageUrl ? imageUrl : 'https://via.placeholder.com/150';
-    }
+        editButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // Read clean dataset blocks directly out of DOM target parameters
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const desc = this.getAttribute('data-description');
+                const category = this.getAttribute('data-category');
+                const stocks = this.getAttribute('data-stocks');
+                const price = this.getAttribute('data-price');
+                const imageUrl = this.getAttribute('data-image');
+
+                // Fixed: Explicitly targets the full resource endpoint /seller/products/{id}
+                document.getElementById('editProductForm').action = '/seller/products/' + id;
+                
+                // Form assignment statements
+                document.getElementById('editName').value = name;
+                document.getElementById('editDescription').value = desc;
+                document.getElementById('editCategory').value = category;
+                document.getElementById('editStocks').value = stocks;
+                document.getElementById('editPrice').value = price;
+                
+                // Dynamic Image Preview Assignment
+                const previewElement = document.getElementById('editPreviewImage');
+                previewElement.src = imageUrl;
+            });
+        });
+    });
 
     function showProductImageModal(imageUrl, imageAlt) {
         const previewImg = document.getElementById('productImageModalImg');
