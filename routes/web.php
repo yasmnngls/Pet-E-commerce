@@ -3,12 +3,13 @@
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminDashBoardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OtsSellerProductController;
 use App\Http\Controllers\OtsSellerOrderController;
 use App\Http\Controllers\OtsSellerEarningsController;
-
+use App\Http\Controllers\VendorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,25 @@ Route::prefix('seller')->group(function () {
     Route::get('/earnings', [OtsSellerEarningsController::class, 'index'])->name('seller.earnings');
     Route::post('/earnings/withdraw', [OtsSellerEarningsController::class, 'storeWithdrawal'])->name('seller.earnings.withdraw');
 });
+
+//Order of Users
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index')->middleware('auth');
+
+Route::prefix('apply/vendor')->group(function () {
+        Route::get('/cancel', [VendorController::class, 'cancelApplication'])->name('vendor.cancel');
+        
+        Route::get('/step-1', [VendorController::class, 'step1'])->name('vendor.step1');
+        Route::post('/step-1', [VendorController::class, 'postStep1'])->name('vendor.step1.post');
+        
+        Route::get('/step-2', [VendorController::class, 'step2'])->name('vendor.step2');
+        Route::post('/step-2', [VendorController::class, 'postStep2'])->name('vendor.step2.post');
+        
+        Route::get('/step-3', [VendorController::class, 'step3'])->name('vendor.step3');
+        Route::post('/step-3', [VendorController::class, 'postStep3'])->name('vendor.step3.post');
+        
+        Route::get('/step-4', [VendorController::class, 'step4'])->name('vendor.step4');
+        Route::post('/step-4', [VendorController::class, 'postStep4'])->name('vendor.step4.post');
+    });
 
 // ADMIN ADMIN ADMIN //
 //Admin Hidden Routes

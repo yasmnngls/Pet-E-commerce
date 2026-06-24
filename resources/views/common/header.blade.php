@@ -29,7 +29,7 @@
 
     <!-- Cart Button and Profile Circle Thing -->
     <div class="d-flex align-items-center gap-4">
-      <a href="#" class="text-white fs-5 text-decoration-none position-relative mt-1">
+      <a href="{{route('orders.index')}}" class="text-white fs-5 text-decoration-none position-relative mt-1">
         <i class="bi bi-cart3"></i>
       </a>
 
@@ -84,7 +84,7 @@
                 <div class="card-body py-3">
                     <h6 class="fw-bold" style="color: #a52a2a;">Start Selling!</h6>
                     <p class="small text-muted mb-2">Turn your pet passion into profit.</p>
-                    <a href="#" class="btn btn-sm text-white w-100 fw-bold" style="background-color: #a52a2a;">Apply as a Vendor</a>
+                    <a href="{{route('vendor.step1')}}" class="btn btn-sm text-white w-100 fw-bold" style="background-color: #a52a2a;">Apply as a Vendor</a>
                 </div>
             </div>
         </div>
