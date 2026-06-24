@@ -41,4 +41,19 @@ class Product extends Model
     {
         return $this->morphMany(OrderItem::class, 'item');
     }
+
+    public function getFeaturedImageUrlAttribute()
+    {
+        return $this->image ? asset($this->image) : asset('storage/images/pet3.jpg');
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? asset($this->image) : asset('storage/images/pet3.jpg');
+    }
+
+    public function getCategoryDisplayNameAttribute()
+    {
+        return $this->category->name ?? 'General';
+    }
 }

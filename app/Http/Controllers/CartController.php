@@ -52,12 +52,22 @@ class CartController extends Controller
         $qty      = (int) ($request->quantity ?? 1);
         $cart     = $this->getOrCreateCart();
 
+        // Prevent adding if requested quantity exceeds available stock
+        if ($product->stock_quantity < $qty) {
+            return redirect()->back()->withErrors(['error' => "Only {$product->stock_quantity} left in stock for {$product->name}."]);
+        }
+
         $cartItem = CartItem::where('cart_id', $cart->id)
             ->where('item_type', Product::class)
             ->where('item_id', $product->id)
             ->first();
 
         if ($cartItem) {
+            // Check if the NEW total quantity exceeds stock
+            $newQty = $cartItem->quantity + $qty;
+            if ($product->stock_quantity < $newQty) {
+                return redirect()->back()->withErrors(['error' => "Cannot add more. You already have {$cartItem->quantity} in your cart, and only {$product->stock_quantity} are available."]);
+            }
             $cartItem->increment('quantity', $qty);
         } else {
             CartItem::create([
@@ -68,7 +78,7 @@ class CartController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', "'{" . $product->name . "}' added to cart!");
+        return redirect()->back()->with('success', "{$product->name} added to cart!");
     }
 
     /**

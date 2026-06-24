@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,23 +14,29 @@ class OtsSellerProductController extends Controller
     // Display all products belonging to the logged-in seller
     public function index()
     {
-        // For testing/development, if Auth isn't set up yet, fallback to user ID 1 safely
-        $sellerId = Auth::id() ?? 1; 
+        $products = Product::where('seller_id', Auth::id())
+            ->with('category')
+            ->latest()
+            ->get()
+            ->map(function ($product) {
+                $product->category_name = $product->category->name ?? 'General';
+                return $product;
+            });
 
-        // Fetch products and join categories table to get the text label
-        $products = DB::table('products')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->where('products.seller_id', $sellerId)
-            ->select('products.*', 'categories.name as category_name')
-            ->orderBy('products.created_at', 'desc')
-            ->get();
-
-        // Get all categories to populate the Add/Edit dropdown menus
-        $categories = DB::table('categories')->get();
+        $categories = Category::all();
 
         return view('Otssellerproductstab', compact('products', 'categories'));
     }
+    // You also need to secure your edit/update/delete routes!
+    public function edit($id)
+    {
+        // use firstOrFail() to ensure they can't edit someone else's product by guessing the ID
+        $product = Product::where('id', $id)
+                          ->where('seller_id', Auth::id())
+                          ->firstOrFail();
 
+        return view('seller.products.edit', compact('product'));
+    }
     // Add a new product to Supabase
     public function store(Request $request)
     {
@@ -44,18 +52,11 @@ class OtsSellerProductController extends Controller
         $sellerId = Auth::id() ?? 1;
         $imagePath = null;
 
-        // Handle File Upload to public/images/products so product rows can load files directly
+        // Store uploads in the Laravel public disk so they resolve through /storage/...
         if ($request->hasFile('product_image')) {
-            $image = $request->file('product_image');
-            $folder = public_path('images/products');
-            if (!is_dir($folder)) {
-                mkdir($folder, 0755, true);
-            }
-            $imageName = uniqid('product_') . '.' . $image->getClientOriginalExtension();
-            $image->move($folder, $imageName);
-            $imagePath = 'images/products/' . $imageName;
+            $storedPath = $request->file('product_image')->store('products', 'public');
+            $imagePath = 'storage/' . $storedPath;
         }
-
         DB::table('products')->insert([
             'name' => $request->name,
             'slug' => Str::slug($request->name) . '-' . time(), // Enforces unique constraint safety
@@ -85,7 +86,11 @@ class OtsSellerProductController extends Controller
             'product_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
 
-        $sellerId = Auth::id() ?? 1;
+        $sellerId = Auth::id();
+
+        if (!$sellerId) {
+            return redirect()->back()->with('error', 'You must be logged in.');
+        }
 
         // Verify ownership protection boundary
         $product = DB::table('products')->where('id', $id)->where('seller_id', $sellerId)->first();
@@ -104,14 +109,8 @@ class OtsSellerProductController extends Controller
         ];
 
         if ($request->hasFile('product_image')) {
-            $image = $request->file('product_image');
-            $folder = public_path('images/products');
-            if (!is_dir($folder)) {
-                mkdir($folder, 0755, true);
-            }
-            $imageName = uniqid('product_') . '.' . $image->getClientOriginalExtension();
-            $image->move($folder, $imageName);
-            $updateData['image'] = 'images/products/' . $imageName;
+            $storedPath = $request->file('product_image')->store('products', 'public');
+            $updateData['image'] = 'storage/' . $storedPath;
         }
 
         DB::table('products')->where('id', $id)->update($updateData);

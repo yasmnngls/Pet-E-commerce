@@ -3,28 +3,135 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    /**
-     * Show a single product detail page.
-     */
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)
-            ->where('status', 'approved')
-            ->with(['category', 'seller'])
-            ->firstOrFail();
+        $product = DB::table('products')->where('slug', $slug)->first();
 
-        // Related products: same category, excluding this one, up to 4
-        $related = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->where('status', 'approved')
-            ->with('seller')
-            ->take(4)
+        if (!$product) {
+            abort(404);
+        }
+
+        return response()->json(['slug' => $slug, 'product' => $product]);
+    }
+
+    /**
+     * Display all products belonging to the logged-in seller
+     */
+    public function index()
+    {
+        // Fallback to seller account ID 4 to match your test store environment
+        $sellerId = Auth::id() ?? 4; 
+
+        // Fetch products and join categories table so $product->category_name renders flawlessly
+        $products = DB::table('products')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->where('products.seller_id', $sellerId)
+            ->select('products.*', 'categories.name as category_name')
+            ->orderBy('products.created_at', 'desc')
             ->get();
 
-        return view('product', compact('product', 'related'));
+        // Get all categories to populate your forms/modals drops
+        $categories = DB::table('categories')->get();
+
+        // FIXED VIEW PATH: Points directly to your actual filename in resources/views/
+        return view('Otssellerproductstab', compact('products', 'categories'));
+    }
+
+    /**
+     * Add a new product to your catalog
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|integer',
+            'stock_quantity' => 'required|integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'product_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+        ]);
+
+        $sellerId = Auth::id() ?? 4;
+        $imagePath = null;
+
+        if ($request->hasFile('product_image')) {
+            $storedPath = $request->file('product_image')->store('products', 'public');
+            $imagePath = 'storage/' . $storedPath;
+        }
+
+        DB::table('products')->insert([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name) . '-' . time(),
+            'category_id' => $request->category_id,
+            'seller_id' => $sellerId,
+            'description' => $request->description,
+            'price' => $request->price,
+            'stock_quantity' => $request->stock_quantity,
+            'image' => $imagePath,
+            'status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        return redirect()->back()->with('success', 'Product added successfully to your catalog!');
+    }
+
+    /**
+     * Update an existing product listing
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|integer',
+            'stock_quantity' => 'required|integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'product_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+        ]);
+
+        $sellerId = Auth::id() ?? 4;
+
+        $product = DB::table('products')->where('id', $id)->where('seller_id', $sellerId)->first();
+        if (!$product) {
+            return redirect()->back()->with('error', 'Unauthorized or product not found.');
+        }
+
+        $updateData = [
+            'name' => $request->name,
+            'slug' => Str::slug($request->name) . '-' . $id,
+            'category_id' => $request->category_id,
+            'description' => $request->description,
+            'price' => $request->price,
+            'stock_quantity' => $request->stock_quantity,
+            'updated_at' => now()
+        ];
+
+        if ($request->hasFile('product_image')) {
+            $storedPath = $request->file('product_image')->store('products', 'public');
+            $updateData['image'] = 'storage/' . $storedPath;
+        }
+
+        DB::table('products')->where('id', $id)->update($updateData);
+
+        return redirect()->back()->with('success', 'Product specifications updated successfully!');
+    }
+
+    /**
+     * Delete a product listing
+     */
+    public function destroy($id)
+    {
+        $sellerId = Auth::id() ?? 4;
+        
+        DB::table('products')->where('id', $id)->where('seller_id', $sellerId)->delete();
+
+        return redirect()->back()->with('success', 'Listing deleted cleanly from database.');
     }
 }

@@ -10,16 +10,22 @@ use Illuminate\Http\Request;
 class AdminDashBoardController extends Controller
 {
     //Fetch Data
-    public function index(){
-        //Fetch Data
-        $users = User::all();
-        $products = Product::where('status', 'approved')->get();
+    public function index()
+    {
+        // Fetch pending seller applications
+        $pendingSellers = SellerApplication::where('status', 'pending')
+            ->with('user')
+            ->get();
 
-        //Fetch queue for approval
-        $pendingSellers = SellerApplication::where('status', 'pending')->get();
-        $pendingProducts = Product::where('status', 'pending')->get();
+        // Fetch pending products (assuming products have a 'status' column that defaults to 'pending')
+        $pendingProducts = Product::where('status', 'pending')
+            ->with(['seller', 'category'])
+            ->get();
 
-        return view('admin.dashboard', compact('users', 'products', 'pendingSellers', 'pendingProducts'));
+        // Fetch other metrics you might need
+        $usersCount = User::count();
+
+        return view('admin.dashboard', compact('pendingSellers', 'pendingProducts', 'usersCount'));
     }
 
     //CRUD: Update(Change Role of User)

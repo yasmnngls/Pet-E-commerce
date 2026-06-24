@@ -1,9 +1,8 @@
 <nav class="navbar navbar-expand-lg custom-nav px-4 py-2" data-bs-theme="dark">
   <div class="container-fluid p-0 d-flex align-items-center justify-content-between">
     
-    <!-- Logo and Catefoies dropdown -->
     <div class="d-flex align-items-center gap-3">
-      <a class="navbar-brand fw-bold mb-0 text-white fs-4 d-flex align-items-center gap-2" href="#">
+      <a class="navbar-brand fw-bold mb-0 text-white fs-4 d-flex align-items-center gap-2" href="{{ route('landing') }}">
         <i class="bi bi-shop"></i> PowerPuff Pets
       </a>
 
@@ -19,7 +18,6 @@
       </div>
     </div>
 
-    <!-- Search Bar -->
     <form class="d-flex mx-auto w-50" role="search">
       <input class="form-control rounded-start-pill bg-white text-dark border-0 px-4 py-2" type="search" placeholder="Search for products, brands..." aria-label="Search">
       <button class="btn text-white rounded-end-pill px-4" type="button" style="background-color: #8b2323;">
@@ -27,7 +25,6 @@
       </button>
     </form>
 
-    <!-- Cart Button and Profile Circle Thing -->
     <div class="d-flex align-items-center gap-4">
       <a href="{{ route('cart.index') }}" class="text-white fs-5 text-decoration-none position-relative mt-1">
         <i class="bi bi-cart3"></i>
@@ -45,7 +42,6 @@
 
       <div class="vr text-white opacity-75" style="min-height: 35px; width: 2px;"></div>
 
-      <!-- Side Panel -->
       <a href="#profileOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="profileOffcanvas" style="outline: none;">
         <img src="{{ asset('images/pfp.jpg') }}" alt="Profile" width="45" height="45" class="rounded-circle border border-2 border-light shadow-sm" style="object-fit: cover;">
       </a>
@@ -65,7 +61,7 @@
 
   <div class="offcanvas-body d-flex flex-column p-0">
     
-    <!-- User Info -->
+    @auth
     <div class="p-4" style="background-color: #F5EFE6;">
         <div class="d-flex align-items-center gap-3">
             <img src="{{ asset('images/pfp.jpg') }}" alt="Profile" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm" style="object-fit: cover;">
@@ -76,7 +72,6 @@
         </div>
     </div>
 
-    <!-- Links -->
     <div class="list-group list-group-flush mt-2">
         <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action py-3 border-0">
             <i class="bi bi-box-seam me-3 text-muted"></i> My Orders
@@ -88,35 +83,46 @@
             <i class="bi bi-gear me-3 text-muted"></i> Account Settings
         </a>
         
-        <!-- Vendor Prompt -->
-        <div class="p-3 mt-2">
-            <div class="card border-0 shadow-sm" style="background-color: #fff3f3; border-left: 4px solid #a52a2a !important;">
-                <div class="card-body py-3">
-                    <h6 class="fw-bold" style="color: #a52a2a;">Start Selling!</h6>
-                    <p class="small text-muted mb-2">Turn your pet passion into profit.</p>
-                    <a href="{{route('vendor.step1')}}" class="btn btn-sm text-white w-100 fw-bold" style="background-color: #a52a2a;">Apply as a Vendor</a>
+        @if(auth()->user()->role === 'seller')
+            <div class="p-3 mt-2">
+                <a href="{{ route('seller.products') }}" class="btn text-white w-100 fw-bold py-2 shadow-sm rounded-pill" style="background-color: #a52a2a;">
+                    <i class="bi bi-shop me-2"></i> Go to Seller Centre
+                </a>
+            </div>
+        @elseif(auth()->user()->role === 'admin')
+            <div class="p-3 mt-2">
+                <a href="{{ route('admin.dashboard') }}" class="btn text-white w-100 fw-bold py-2 shadow-sm rounded-pill" style="background-color: #343a40;">
+                    <i class="bi bi-speedometer2 me-2"></i> Admin Panel
+                </a>
+            </div>
+        @else
+            <div class="p-3 mt-2">
+                <div class="card border-0 shadow-sm" style="background-color: #fff3f3; border-left: 4px solid #a52a2a !important;">
+                    <div class="card-body py-3">
+                        <h6 class="fw-bold" style="color: #a52a2a;">Start Selling!</h6>
+                        <p class="small text-muted mb-2">Turn your pet passion into profit.</p>
+                        <a href="{{route('vendor.step1')}}" class="btn btn-sm text-white w-100 fw-bold" style="background-color: #a52a2a;">Apply as a Vendor</a>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 
-    <!-- Log Out -->
     <div class="mt-auto p-3">
-      @auth 
-        <form id="secure-logout-form" method="POST" action=" {{ route('logout') }}" class="m-0">
+        <form id="secure-logout-form" method="POST" action="{{ route('logout') }}" class="m-0">
             @csrf
             <button type="submit" class="btn btn-light border w-100 fw-bold text-danger py-2">
                 <i class="bi bi-box-arrow-right me-2"></i> Log Out
             </button>
         </form>
-      @endauth
     </div>
+    @endauth
 
   </div>
 </div>
 
 <style>
-    .custom-nav{
+    .custom-nav {
         background-color: brown;
     }
 </style>

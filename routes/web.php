@@ -45,7 +45,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::redirect('/seller', '/seller/products');
 
-Route::prefix('seller')->group(function () {
+Route::prefix('seller')->middleware(['auth'])->group(function () {
     
     // Product Management Suite
     Route::get('/products', [OtsSellerProductController::class, 'index'])->name('seller.products');
