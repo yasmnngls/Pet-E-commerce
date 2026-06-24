@@ -29,8 +29,18 @@
 
     <!-- Cart Button and Profile Circle Thing -->
     <div class="d-flex align-items-center gap-4">
-      <a href="{{route('orders.index')}}" class="text-white fs-5 text-decoration-none position-relative mt-1">
+      <a href="{{ route('cart.index') }}" class="text-white fs-5 text-decoration-none position-relative mt-1">
         <i class="bi bi-cart3"></i>
+        @auth
+          @php
+            $cartCount = \App\Http\Controllers\CartController::cartCount();
+          @endphp
+          @if($cartCount > 0)
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 0.65rem;">
+              {{ $cartCount }}
+            </span>
+          @endif
+        @endauth
       </a>
 
       <div class="vr text-white opacity-75" style="min-height: 35px; width: 2px;"></div>
@@ -68,7 +78,7 @@
 
     <!-- Links -->
     <div class="list-group list-group-flush mt-2">
-        <a href="#" class="list-group-item list-group-item-action py-3 border-0">
+        <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action py-3 border-0">
             <i class="bi bi-box-seam me-3 text-muted"></i> My Orders
         </a>
         <a href="#" class="list-group-item list-group-item-action py-3 border-0">

@@ -84,117 +84,77 @@
 
 
 <div class="container mt-5">
-    
+
     <div class="d-flex justify-content-between align-items-end mb-4">
         <h3 class="fw-bold mb-0 text-uppercase" style="color: brown;">Best Sellers</h3>
         <a href="#" class="text-decoration-none fw-medium" style="color: brown;">Shop More ></a>
     </div>
 
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
-        
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
-                
-                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-3 rounded-pill fw-bold z-1">Top Rated</span>
-                
-                <img src="images/pet3.jpg" class="card-img-top p-4" alt="Dog Food" style="object-fit: contain; height: 180px;">
-                
-                <div class="card-body d-flex flex-column pt-0">
-                    
-                    <small class="text-muted mb-1 fw-medium"><i class="bi bi-shop me-1"></i> The Dog Store</small>
-                    
-                    <h6 class="card-title fw-bold text-truncate-2 mb-1" style="font-size: 0.95rem;">Dog Food</h6>
-                    
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="text-warning small me-2">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-half"></i>
+    @if(session('success'))
+        <div class="alert alert-success rounded-3 shadow-sm mb-3">{{ session('success') }}</div>
+    @endif
+
+    @if($bestSellers->isEmpty())
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-box-seam d-block mb-2" style="font-size: 2.5rem;"></i>
+            <p class="mb-0">No products available yet. Check back soon!</p>
+        </div>
+    @else
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
+            @foreach($bestSellers as $loop_product)
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
+
+                        <img src="{{ asset($loop_product->image ?? 'images/pet3.jpg') }}"
+                             class="card-img-top p-4"
+                             alt="{{ $loop_product->name }}"
+                             style="object-fit: contain; height: 180px;"
+                            >
+
+                        <div class="card-body d-flex flex-column pt-0">
+
+                            <small class="text-muted mb-1 fw-medium">
+                                <i class="bi bi-shop me-1"></i>
+                                {{ $loop_product->seller->name ?? 'PowerPuff Pets' }}
+                            </small>
+
+                            <a href="{{ route('product.show', $loop_product->slug) }}" class="text-decoration-none text-dark">
+                                <h6 class="card-title fw-bold text-truncate-2 mb-1" style="font-size: 0.95rem;">
+                                    {{ $loop_product->name }}
+                                </h6>
+                            </a>
+
+                            <div class="mb-3">
+                                <span class="fw-bold fs-5" style="color: brown;">
+                                    ₱{{ number_format($loop_product->price, 2) }}
+                                </span>
+                            </div>
+
+                            <div class="mt-auto d-flex align-items-center justify-content-between">
+                                @auth
+                                    <form action="{{ route('cart.add') }}" method="POST" class="m-0">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $loop_product->id }}">
+                                        <button type="submit" class="btn btn-sm text-white rounded-pill px-3 fw-medium" style="background-color: brown;">
+                                            Add to Cart
+                                        </button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('login') }}" class="btn btn-sm text-white rounded-pill px-3 fw-medium" style="background-color: brown;">
+                                        Add to Cart
+                                    </a>
+                                @endauth
+                                <button class="btn btn-light rounded-circle text-muted d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </div>
+
                         </div>
-                        <small class="text-muted" style="font-size: 0.8rem;">(128)</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <span class="fw-bold fs-5" style="color: brown;">$35.00</span>
-                    </div>
-                    
-                    <div class="mt-auto d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm text-white rounded-pill px-3 fw-medium" style="background-color: brown;">Add to Cart</button>
-                        <button class="btn btn-light rounded-circle text-muted d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px;">
-                            <i class="bi bi-heart"></i>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
-                <img src="images/pet3.jpg" class="card-img-top p-4" alt="Cat Toy" style="object-fit: contain; height: 180px;">
-                <div class="card-body d-flex flex-column pt-0">
-                    <small class="text-muted mb-1 fw-medium"><i class="bi bi-shop me-1"></i> The Feline Boutique</small>
-                    <h6 class="card-title fw-bold text-truncate-2 mb-1" style="font-size: 0.95rem;">Interactive Laser Pointer Cat Toy</h6>
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="text-warning small me-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                        <small class="text-muted" style="font-size: 0.8rem;">(42)</small>
-                    </div>
-                    <div class="mb-3">
-                        <span class="fw-bold fs-5" style="color: brown;">$12.50</span>
-                    </div>
-                    <div class="mt-auto d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm text-white rounded-pill px-3 fw-medium" style="background-color: brown;">Add to Cart</button>
-                        <button class="btn btn-light rounded-circle text-muted d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px;"><i class="bi bi-heart"></i></button>
                     </div>
                 </div>
-            </div>
+            @endforeach
         </div>
-
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
-                <img src="images/pet3.jpg" class="card-img-top p-4" alt="Cat Toy" style="object-fit: contain; height: 180px;">
-                <div class="card-body d-flex flex-column pt-0">
-                    <small class="text-muted mb-1 fw-medium"><i class="bi bi-shop me-1"></i> The Feline Boutique</small>
-                    <h6 class="card-title fw-bold text-truncate-2 mb-1" style="font-size: 0.95rem;">Interactive Laser Pointer Cat Toy</h6>
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="text-warning small me-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                        <small class="text-muted" style="font-size: 0.8rem;">(42)</small>
-                    </div>
-                    <div class="mb-3">
-                        <span class="fw-bold fs-5" style="color: brown;">$12.50</span>
-                    </div>
-                    <div class="mt-auto d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm text-white rounded-pill px-3 fw-medium" style="background-color: brown;">Add to Cart</button>
-                        <button class="btn btn-light rounded-circle text-muted d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px;"><i class="bi bi-heart"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
-                <img src="images/pet3.jpg" class="card-img-top p-4" alt="Cat Toy" style="object-fit: contain; height: 180px;">
-                <div class="card-body d-flex flex-column pt-0">
-                    <small class="text-muted mb-1 fw-medium"><i class="bi bi-shop me-1"></i> The Feline Boutique</small>
-                    <h6 class="card-title fw-bold text-truncate-2 mb-1" style="font-size: 0.95rem;">Interactive Laser Pointer Cat Toy</h6>
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="text-warning small me-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                        <small class="text-muted" style="font-size: 0.8rem;">(42)</small>
-                    </div>
-                    <div class="mb-3">
-                        <span class="fw-bold fs-5" style="color: brown;">$12.50</span>
-                    </div>
-                    <div class="mt-auto d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm text-white rounded-pill px-3 fw-medium" style="background-color: brown;">Add to Cart</button>
-                        <button class="btn btn-light rounded-circle text-muted d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px;"><i class="bi bi-heart"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        </div>
+    @endif
 </div>
 
 <!-- "Become a Vendor" -->
@@ -211,7 +171,7 @@
                 </p>
                 <div>
                     <!-- The bright yellow button draws the eye immediately -->
-                    <a href="#" class="btn btn-warning rounded-pill px-5 py-3 fw-bold shadow" style="color: brown; font-size: 1.1rem;">
+                    <a href="{{ route('vendor.step1') }}" class="btn btn-warning rounded-pill px-5 py-3 fw-bold shadow" style="color: brown; font-size: 1.1rem;">
                         Register as a Vendor <i class="bi bi-arrow-right ms-2"></i>
                     </a>
                 </div>

@@ -5,11 +5,14 @@ use App\Http\Controllers\AdminDashBoardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OtsSellerProductController;
 use App\Http\Controllers\OtsSellerOrderController;
 use App\Http\Controllers\OtsSellerEarningsController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +22,9 @@ use App\Http\Controllers\VendorController;
 
 // Landing Page
 Route::get('/Home', [PageController::class, 'landing'])->name('landing');
+
+// Product Detail
+Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
 
 // Login Page
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -59,6 +65,19 @@ Route::prefix('seller')->group(function () {
 
 //Order of Users
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index')->middleware('auth');
+
+// Cart
+Route::middleware(['auth'])->group(function () {
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::patch('/cart/{id}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{id}', [CartController::class, 'remove'])->name('cart.remove');
+
+    // Checkout
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/confirmation/{id}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+});
 
 Route::prefix('apply/vendor')->group(function () {
         Route::get('/cancel', [VendorController::class, 'cancelApplication'])->name('vendor.cancel');
