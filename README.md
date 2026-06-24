@@ -1,4 +1,4 @@
-# 🛍️ Multi-Vendor E-Commerce System
+# 🛍️ Powerpuff Pets: Multi-Vendor E-Commerce System
 
 [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
@@ -93,6 +93,8 @@ graph TD
     
     Views -->|Response HTML/CSS| User
 ```
+
+🎨 **Interactive System Flowchart & Wireframes:** You can explore the live user flows, layout architecture, and database logic diagrams directly on the [Figma / FigJam Board](https://www.figma.com/board/skLS7GR30yHx52u3Ot9hfI/Ecommerce?node-id=0-1&t=k2XCmq4MpJ5Gfugm-1).
 
 ---
 
@@ -231,10 +233,11 @@ Follow these steps to set up and run the project locally.
 
 This project was built by a dedicated team focusing on specific aspects of the Laravel/Bootstrap architecture:
 
-* **Backend Lead - John Karl Espanol:** Architectural setup, database schemas, Eloquent relationship definition, and API controllers.
-* **Frontend Lead - Carlos Jimenez:** User Experience, Blade templating engines, layout scaffolding, and Bootstrap 5.3 styling.
-* **Full Stack Developer - Franz Jearson De Limios:** Cart-to-checkout pipelines, order-splitting modules, and validation hooks.
-* **UI/UX Designer & Project Manager - Yhasmen Nogales:** Version control compliance (Git branching), testing frameworks, product seed documentation, demo logic, high-fidelity UI mockups, interface consistency guidelines, layout designs, and interactive user flows.
+* **Backend Lead:** Architectural setup, database schemas, Eloquent relationship definition, and API controllers.
+* **Frontend Lead:** User Experience, Blade templating engines, layout scaffolding, and Bootstrap 5.3 styling.
+* **Full Stack Developer:** Cart-to-checkout pipelines, order-splitting modules, and validation hooks.
+* **QA / Project Manager:** Version control compliance (Git branching), testing frameworks, product seed documentation, and demo logic.
+* **UI/UX Designer (Yhas):** High-fidelity UI mockups, interface consistency guidelines, layout designs, and interactive user flows.
 
 ---
 
@@ -266,8 +269,6 @@ This project was built by a dedicated team focusing on specific aspects of the L
 ---
 
 ## 📸 Screenshots & Demo
-
-*(Optional: Add your custom dashboard and storefront images here to highlight the responsive frontend interface)*
 
 | Customer Storefront | Seller Dashboard | Admin Panel |
 | :---: | :---: | :---: |
