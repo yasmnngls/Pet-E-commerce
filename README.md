@@ -233,12 +233,10 @@ Follow these steps to set up and run the project locally.
 
 This project was built by a dedicated team focusing on specific aspects of the Laravel/Bootstrap architecture:
 
-* **Backend Lead:** Architectural setup, database schemas, Eloquent relationship definition, and API controllers.
-* **Frontend Lead:** User Experience, Blade templating engines, layout scaffolding, and Bootstrap 5.3 styling.
-* **Full Stack Developer:** Cart-to-checkout pipelines, order-splitting modules, and validation hooks.
-* **QA / Project Manager:** Version control compliance (Git branching), testing frameworks, product seed documentation, and demo logic.
-* **UI/UX Designer (Yhas):** High-fidelity UI mockups, interface consistency guidelines, layout designs, and interactive user flows.
-
+* **Backend Lead - John Karl Espanol:** Architectural setup, database schemas, Eloquent relationship definition, and API controllers.
+* **Frontend Lead - Carlos Jimenez:** User Experience, Blade templating engines, layout scaffolding, and Bootstrap 5.3 styling.
+* **Full Stack Developer - Franz Jearson De Limios:** Cart-to-checkout pipelines, order-splitting modules, and validation hooks.
+* **UI/UX Designer & Project Manager - Yhasmen Nogales:** Version control compliance (Git branching), testing frameworks, product seed documentation, demo logic, high-fidelity UI mockups, interface consistency guidelines, layout designs, and interactive user flows.
 ---
 
 ## 📈 Development Roadmap & Progress
