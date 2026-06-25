@@ -3,12 +3,6 @@
 @section('content')
 <div class="custom-card p-4 mb-4">
     <div class="row align-items-center">
-        <div class="col-auto">
-            <img src="{{ $store?->logo_url ?? asset('images/default-store.png') }}" 
-                 alt="Store Logo" 
-                 class="rounded-circle border" 
-                 style="width: 100px; height: 100px; object-fit: cover;">
-        </div>
         <div class="col">
             <h2 class="fw-bold">{{ $store?->store_name ?? 'Your Store Name' }}</h2>
             <p class="text-muted mb-0">{{ $store?->store_description ?? 'Add a nice description for your store here...' }}</p>

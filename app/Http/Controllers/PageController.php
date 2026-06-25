@@ -12,11 +12,7 @@ class PageController extends Controller
     public function landing()
     {
         // 1. Keep your real approved products for the Best Sellers section
-        $bestSellers = Product::where('status', 'approved')
-            ->with('seller')
-            ->latest()
-            ->take(8)
-            ->get();
+        $bestSellers = \App\Models\Product::latest()->take(5)->get();
 
         // 2. Keep your categories for the category strip
         $categories = Category::all();
