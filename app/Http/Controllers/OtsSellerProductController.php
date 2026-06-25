@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,44 @@ use Illuminate\Support\Str;
 
 class OtsSellerProductController extends Controller
 {
+    public function index(Request $request)
+    {
+        $selectedPetCategory = $request->input('pet_category');
+        $searchQuery = $request->input('q');
+
+        $products = Product::where('seller_id', Auth::id())
+            ->with('category')
+            ->when($selectedPetCategory, fn($q) => $q->where('category_id', $selectedPetCategory))
+            ->when($searchQuery, fn($q) => $q->where(function ($q) use ($searchQuery) {
+                $q->where('name', 'like', "%{$searchQuery}%")
+                  ->orWhere('description', 'like', "%{$searchQuery}%");
+            }))
+            ->latest()
+            ->get()
+            ->map(function ($product) {
+                $petName = $product->category->name ?? 'General';
+                $productTypeName = $product->product_category ?? null;
+                $product->category_name = $productTypeName ? $petName . ' / ' . $productTypeName : $petName;
+                return $product;
+            });
+
+        $categories = Category::all();
+        $petCategories = Category::where('type', 'pet')->get();
+        $productCategories = Category::where('type', 'product')->get();
+        $store = Auth::user()->sellerApplication ?? null;
+
+        return view('Otssellerproductstab', compact('products', 'categories', 'petCategories', 'productCategories', 'selectedPetCategory', 'searchQuery', 'store'));
+    }
+
+    public function edit($id)
+    {
+        $product = Product::where('id', $id)
+                          ->where('seller_id', Auth::id())
+                          ->firstOrFail();
+
+        return view('seller.products.edit', compact('product'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -20,17 +59,15 @@ class OtsSellerProductController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('product_image')) {
-            $file = $request->file('product_image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('products'), $filename);
-            $imagePath = 'products/' . $filename;
+            $storage = new SupabaseStorageService();
+            $imagePath = $storage->upload($request->file('product_image'), 'products');
         }
 
-        // Connects to Supabase DB, saves image path string locally
         DB::table('products')->insert([
             'name' => $request->name,
             'slug' => Str::slug($request->name) . '-' . time(),
             'category_id' => $request->category_id,
+            'product_category' => $request->product_category,
             'seller_id' => Auth::id() ?? 1,
             'description' => $request->description,
             'price' => $request->price,
@@ -41,7 +78,7 @@ class OtsSellerProductController extends Controller
             'updated_at' => now()
         ]);
 
-        return redirect()->back()->with('success', 'Product added to Supabase catalog!');
+        return redirect()->back()->with('success', 'Product uploaded to cloud successfully!');
     }
 
     public function update(Request $request, $id)
@@ -53,6 +90,8 @@ class OtsSellerProductController extends Controller
 
         $updateData = [
             'name' => $request->name,
+            'category_id' => $request->category_id,
+            'product_category' => $request->product_category,
             'description' => $request->description,
             'price' => $request->price,
             'stock_quantity' => $request->stock_quantity,
@@ -60,14 +99,18 @@ class OtsSellerProductController extends Controller
         ];
         
         if ($request->hasFile('product_image')) {
-            $file = $request->file('product_image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('products'), $filename);
-            $updateData['image'] = 'products/' . $filename;
+            $storage = new SupabaseStorageService();
+            $updateData['image'] = $storage->upload($request->file('product_image'), 'products');
         }
 
-        // Updates data in Supabase, image file stays in local public/products/
         DB::table('products')->where('id', $id)->update($updateData);
-        return redirect()->back()->with('success', 'Product updated!');
+        return redirect()->back()->with('success', 'Product updated in cloud!');
+    }
+
+    public function destroy($id)
+    {
+        $sellerId = Auth::id() ?? 1;
+        DB::table('products')->where('id', $id)->where('seller_id', $sellerId)->delete();
+        return redirect()->back()->with('success', 'Listing deleted.');
     }
 }

@@ -92,13 +92,30 @@
             @else
                 <div class="row row-cols-2 row-cols-md-3 g-4">
                     @foreach($products as $product)
+                        @php
+                            // THE SUPABASE FIX: 
+                            // Safely checks the database column and creates the right URL
+                            $imgSrc = asset('images/pet3.png'); // Default fallback
+                            
+                            // Check 'image' first, fallback to 'image_url' if needed
+                            $dbImage = $product->image ?? $product->image_url;
+
+                            if (!empty($dbImage)) {
+                                if (str_starts_with($dbImage, 'http')) {
+                                    $imgSrc = $dbImage;
+                                } else {
+                                    $imgSrc = 'https://qrftqykinnwvxqyclcfl.supabase.co/storage/v1/object/public/' . $dbImage;
+                                }
+                            }
+                        @endphp
+                    
                         <div class="col">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card">
 
-                                  <img src="{{ $product->image_url }}"
-                                      class="card-img-top p-3"
-                                      alt="{{ $product->name }}"
-                                      style="object-fit: contain; height: 160px;">
+                                  <img src="{{ $imgSrc }}"
+                                       class="card-img-top p-3"
+                                       alt="{{ $product->name }}"
+                                       style="object-fit: contain; height: 160px;">
 
                                 <div class="card-body d-flex flex-column pt-0">
                                     <small class="text-muted mb-1 fw-medium">
