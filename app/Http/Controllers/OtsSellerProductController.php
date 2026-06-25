@@ -12,10 +12,18 @@ use Illuminate\Support\Str;
 class OtsSellerProductController extends Controller
 {
     // Display all products belonging to the logged-in seller
-    public function index()
+    public function index(Request $request)
     {
+        $selectedPetCategory = $request->input('pet_category');
+        $searchQuery = $request->input('q');
+
         $products = Product::where('seller_id', Auth::id())
             ->with('category')
+            ->when($selectedPetCategory, fn($q) => $q->where('category_id', $selectedPetCategory))
+            ->when($searchQuery, fn($q) => $q->where(function ($q) use ($searchQuery) {
+                $q->where('name', 'like', "%{$searchQuery}%")
+                  ->orWhere('description', 'like', "%{$searchQuery}%");
+            }))
             ->latest()
             ->get()
             ->map(function ($product) {
@@ -28,8 +36,9 @@ class OtsSellerProductController extends Controller
         $categories = Category::all();
         $petCategories = Category::where('type', 'pet')->get();
         $productCategories = Category::where('type', 'product')->get();
+        $store = Auth::user()->sellerApplication ?? null;
 
-        return view('Otssellerproductstab', compact('products', 'categories', 'petCategories', 'productCategories'));
+        return view('Otssellerproductstab', compact('products', 'categories', 'petCategories', 'productCategories', 'selectedPetCategory', 'searchQuery', 'store'));
     }
     // You also need to secure your edit/update/delete routes!
     public function edit($id)
@@ -59,7 +68,7 @@ class OtsSellerProductController extends Controller
         // Store uploads in the Laravel public disk so they resolve through /storage/...
         if ($request->hasFile('product_image')) {
             $storedPath = $request->file('product_image')->store('products', 'public');
-            $imagePath = 'storage/' . $storedPath;
+            $imagePath = $storedPath;
         }
         DB::table('products')->insert([
             'name' => $request->name,
@@ -117,7 +126,7 @@ class OtsSellerProductController extends Controller
 
         if ($request->hasFile('product_image')) {
             $storedPath = $request->file('product_image')->store('products', 'public');
-            $updateData['image'] = 'storage/' . $storedPath;
+            $updateData['image'] = $storedPath;
         }
 
         DB::table('products')->where('id', $id)->update($updateData);

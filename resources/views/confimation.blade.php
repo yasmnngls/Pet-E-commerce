@@ -43,7 +43,7 @@
         @foreach($order->items as $orderItem)
             @php $product = $orderItem->item; @endphp
             <div class="d-flex align-items-center gap-3 py-3 {{ !$loop->last ? 'border-bottom' : '' }}">
-                <img src="{{ asset($product->image ?? 'images/pet3.jpg') }}"
+                 <img src="{{ $product->image_url }}"
                      alt="{{ $product->name ?? 'Product' }}"
                      class="rounded-3 border bg-light p-1"
                      style="width: 60px; height: 60px; object-fit: contain;"

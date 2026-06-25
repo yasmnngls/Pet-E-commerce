@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class OtsSellerOrderController extends Controller
 {
@@ -38,7 +39,42 @@ class OtsSellerOrderController extends Controller
                 'products.image as product_image',
                 'products.category_id'
             )->orderBy('orders.created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($order) {
+                $image = is_string($order->product_image) ? str_replace('\\', '/', trim($order->product_image)) : '';
+                $image = ltrim($image, '/');
+
+                if (empty($image)) {
+                    $order->product_image_url = 'https://via.placeholder.com/70';
+                    return $order;
+                }
+
+                if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+                    $order->product_image_url = $image;
+                    return $order;
+                }
+
+                if (str_contains($image, 'storage/app/public/')) {
+                    $image = substr($image, strpos($image, 'storage/app/public/') + strlen('storage/app/public/'));
+                }
+                if (str_starts_with($image, 'app/public/')) {
+                    $image = substr($image, strlen('app/public/'));
+                }
+                if (str_starts_with($image, 'public/')) {
+                    $image = substr($image, strlen('public/'));
+                }
+                if (str_starts_with($image, 'storage/')) {
+                    $image = substr($image, strlen('storage/'));
+                }
+
+                if (Storage::disk('public')->exists($image)) {
+                    $order->product_image_url = Storage::disk('public')->url($image);
+                } else {
+                    $order->product_image_url = asset('storage/' . $image);
+                }
+
+                return $order;
+            });
 
         return view('Otssellerorderstab', compact('orders'));
     }

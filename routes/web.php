@@ -9,6 +9,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OtsSellerProductController;
+use App\Http\Controllers\OtsSellerProfileController;
 use App\Http\Controllers\OtsSellerOrderController;
 use App\Http\Controllers\OtsSellerEarningsController;
 use App\Http\Controllers\VendorController;
@@ -24,6 +25,8 @@ use App\Http\Controllers\CheckoutController;
 // Landing Page
 Route::get('/Home', [PageController::class, 'landing'])->name('landing');
 
+    Route::get('/profile/edit', [OtsSellerProfileController::class, 'edit'])->name('seller.profile.edit');
+    Route::post('/profile/update', [OtsSellerProfileController::class, 'update'])->name('seller.profile.update');
 // Product Detail
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
 

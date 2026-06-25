@@ -12,106 +12,86 @@
             <i class="bi bi-bag-check-fill"></i> My Purchase History
         </h3>
     </div>
-    
-    @forelse($groupedOrders as $orderNumber => $items)
-        @php 
-            // Calculate the total order cost across all nested items inside this specific group
-            $orderTotal = $items->sum(function($item) { return $item->price * $item->quantity; });
-            // Read the main delivery pipeline status from the first item in the group
-            $currentStatus = strtolower($items->first()->item_status ?? 'pending');
-            $trackingNumber = $items->first()->tracking_number;
-            $orderDate = $items->first()->order_date;
+
+    @forelse($orders as $order)
+        @php
+            $orderItems = $order->items->filter(fn($item) => $item->item !== null);
+            $orderTotal = $orderItems->sum(fn($item) => $item->price * $item->quantity);
+            $createdAt = $order->created_at;
         @endphp
 
         <div class="card border-0 shadow-sm rounded-4 mb-4 p-4 bg-white">
-            
             <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-wrap gap-2">
                 <div>
                     <span class="text-muted small d-block">Order Reference Number</span>
-                    <strong class="text-dark font-monospace">#{{ $orderNumber }}</strong>
+                    <strong class="text-dark font-monospace">#{{ $order->order_number }}</strong>
                 </div>
                 <div class="text-md-end">
                     <span class="text-muted small d-block">Placed On</span>
-                    <small class="fw-bold text-secondary">{{ \Carbon\Carbon::parse($orderDate)->format('M d, Y - h:i A') }}</small>
+                    <small class="fw-bold text-secondary">{{ $createdAt->format('M d, Y - h:i A') }}</small>
                 </div>
             </div>
 
-            <div class="row g-4">
-                
-                <div class="col-md-6 border-end border-light">
-                    <div class="d-flex flex-column gap-3">
-                        @foreach($items as $item)
+            @foreach($orderItems->groupBy(fn($item) => $item->seller_id ?? 0) as $sellerId => $sellerItems)
+                @php
+                    $seller = $sellerItems->first()->seller;
+                    $sellerName = $seller?->sellerApplication->store_name ?? $seller?->name ?? 'Unknown Seller';
+                    $sellerTotal = $sellerItems->sum(fn($item) => $item->price * $item->quantity);
+                @endphp
+
+                <div class="mb-4 p-3 rounded-4 bg-light border">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                             <div class="d-flex align-items-center gap-3">
-                                <img src="{{ asset($item->product_image ?? 'images/products/default.jpg') }}" 
-                                     alt="Product Image" 
-                                     class="rounded-3 border bg-light p-1" 
-                                     style="width: 60px; height: 60px; object-fit: contain;"
-                                     onerror="this.src='{{ $fallbackImage }}'">
-                                <div class="flex-grow-1">
-                                    <h6 class="fw-bold mb-0 text-dark small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        {{ $item->product_name ?? 'Item Missing SKU' }}
-                                    </h6>
-                                    <small class="text-muted d-block extra-small">
-                                        Quantity: {{ $item->quantity }} • ₱{{ number_format($item->price, 2) }} each
-                                    </small>
-                                </div>
-                                <div class="text-end">
-                                    <span class="fw-bold text-dark small">₱{{ number_format($item->price * $item->quantity, 2) }}</span>
+                                @php
+                                    $sa = $seller?->sellerApplication ?? null;
+                                @endphp
+                                <img src="{{ $sa?->logo_url ?? asset('images/default-store.png') }}" alt="Store" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ $sellerName }}</h6>
+                                    <small class="text-muted">Seller ID: {{ $sellerId ?: 'N/A' }}</small>
                                 </div>
                             </div>
-                        @endforeach
+                        <div class="text-end">
+                            <span class="badge bg-secondary text-uppercase">{{ $order->status ?? 'pending' }}</span>
+                            <div class="text-muted small">Seller sub-total: ₱{{ number_format($sellerTotal, 2) }}</div>
+                        </div>
                     </div>
-                    
-                    <div class="mt-3 pt-3 border-top border-light d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-medium">Order Total:</span>
-                        <h5 class="fw-bold mb-0" style="color: brown;">₱{{ number_format($orderTotal, 2) }}</h5>
-                    </div>
+
+                    @foreach($sellerItems as $item)
+                        @php
+                            $itemProduct = $item->item;
+                            $itemStatus = strtolower($item->status ?? 'pending');
+                        @endphp
+                        <div class="d-flex align-items-center gap-3 py-3 border-top">
+                               <img src="{{ $itemProduct?->image_url ?? $fallbackImage }}"
+                                 alt="{{ $itemProduct?->name ?? 'Product Image' }}"
+                                 class="rounded-3 border bg-white p-1"
+                                 style="width: 70px; height: 70px; object-fit: contain;"
+                                 onerror="this.src='{{ $fallbackImage }}'">
+
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-dark">{{ $itemProduct?->name ?? ($item->item_type ? class_basename($item->item_type) : 'Unknown item') }}</h6>
+                                <small class="text-muted d-block">Qty: {{ $item->quantity }} • ₱{{ number_format($item->price, 2) }} each</small>
+                                <small class="badge bg-{{ $itemStatus === 'delivered' ? 'success' : ($itemStatus === 'shipped' ? 'info' : 'warning') }} text-capitalize mt-2">{{ $itemStatus }}</small>
+                            </div>
+
+                            <div class="text-end">
+                                <span class="fw-bold text-dark">₱{{ number_format($item->price * $item->quantity, 2) }}</span>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+            @endforeach
 
-                <div class="col-md-6 d-flex flex-column justify-content-center px-lg-4">
-                    <div class="d-flex justify-content-between text-center position-relative align-items-center mb-3">
-                        
-                        <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-secondary-subtle" style="height: 4px; z-index: 0;"></div>
-                        
-                        <div class="z-1 text-center">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm timeline-node {{ in_array($currentStatus ?? '', ['pending', 'shipped', 'delivered']) ? 'timeline-active' : 'timeline-inactive' }}"
-                                 style="width: 38px; height: 38px;">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <small class="fw-bold d-block text-dark tracking-step text-uppercase">Placed</small>
-                        </div>
-
-                        <div class="z-1 text-center">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm timeline-node {{ in_array($currentStatus ?? '', ['shipped', 'delivered']) ? 'timeline-active' : 'timeline-inactive' }}"
-                                 style="width: 38px; height: 38px;">
-                                <i class="bi bi-truck"></i>
-                            </div>
-                            <small class="fw-bold d-block tracking-step text-uppercase {{ in_array($currentStatus, ['shipped', 'delivered']) ? 'text-dark' : 'text-muted' }}">Shipped</small>
-                        </div>
-
-                        <div class="z-1 text-center">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm timeline-node {{ ($currentStatus ?? '') === 'delivered' ? 'timeline-delivered' : 'timeline-inactive' }}"
-                                 style="width: 38px; height: 38px;">
-                                <i class="bi bi-check2-circle"></i>
-                            </div>
-                            <small class="fw-bold d-block tracking-step text-uppercase {{ $currentStatus === 'delivered' ? 'text-success' : 'text-muted' }}">Delivered</small>
-                        </div>
-
-                    </div>
-
-                    <div class="bg-light p-3 rounded-3 text-center border mt-2">
-                        @if($currentStatus === 'pending')
-                            <small class="text-muted"><i class="bi bi-info-circle-fill"></i> Your item is currently being processed and prepared by the merchant partner.</small>
-                        @elseif($currentStatus === 'shipped')
-                            <small class="text-dark fw-medium"><i class="bi bi-box-seam-fill text-primary"></i> Out for delivery! Courier Tracking code: <span class="font-monospace fw-bold text-danger">{{ $trackingNumber ?? 'Pending Assignment' }}</span></small>
-                        @elseif($currentStatus === 'delivered')
-                            <small class="text-success fw-bold"><i class="bi bi-shield-fill-check"></i> Package successfully handed over to recipient. Thank you for shopping!</small>
-                        @else
-                            <small class="text-muted">Current Order State Status: <span class="badge bg-secondary">{{ $currentStatus }}</span></small>
-                        @endif
-                    </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                <div>
+                    <span class="text-muted small">Current order status</span>
+                    <div class="fw-bold text-dark text-uppercase">{{ $order->status ?? 'pending' }}</div>
                 </div>
-
+                <div class="text-end">
+                    <span class="text-muted small d-block">Order Total</span>
+                    <h5 class="fw-bold mb-0" style="color: brown;">₱{{ number_format($orderTotal, 2) }}</h5>
+                </div>
             </div>
         </div>
     @empty
@@ -125,14 +105,5 @@
         </div>
     @endforelse
 </div>
-
-<style>
-    .extra-small { font-size: 0.75rem; }
-    .tracking-step { font-size: 0.7rem; letter-spacing: 0.5px; }
-    .timeline-node { transition: all 0.3s ease-in-out; color: white; }
-    .timeline-active { background-color: brown; }
-    .timeline-inactive { background-color: #e4e5e9; color: #6c757d; }
-    .timeline-delivered { background-color: #198754; }
-</style>
 
 @endsection

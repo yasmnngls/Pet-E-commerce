@@ -66,7 +66,7 @@ class ProductController extends Controller
 
         if ($request->hasFile('product_image')) {
             $storedPath = $request->file('product_image')->store('products', 'public');
-            $imagePath  = 'storage/' . $storedPath;
+            $imagePath  = $storedPath;
         }
 
         DB::table('products')->insert([
@@ -120,7 +120,7 @@ class ProductController extends Controller
 
         if ($request->hasFile('product_image')) {
             $storedPath          = $request->file('product_image')->store('products', 'public');
-            $updateData['image'] = 'storage/' . $storedPath;
+            $updateData['image'] = $storedPath;
         }
 
         DB::table('products')->where('id', $id)->update($updateData);
@@ -147,10 +147,21 @@ class ProductController extends Controller
         $prodCat = $request->input('product_category'); // product category id
 
         $products = Product::whereIn('status', ['approved', 'active'])
-            ->with(['seller', 'category'])
+            ->with(['seller', 'category', 'seller.sellerApplication'])
             ->when($query, fn($q) => $q->where(function ($q) use ($query) {
                 $q->where('name', 'ilike', "%{$query}%")
-                  ->orWhere('description', 'ilike', "%{$query}%");
+                  ->orWhere('description', 'ilike', "%{$query}%")
+                  ->orWhere('price', 'ilike', "%{$query}%")
+                  ->orWhere('product_category', 'ilike', "%{$query}%")
+                  ->orWhereHas('category', fn($q) =>
+                      $q->where('name', 'ilike', "%{$query}%")
+                  )
+                  ->orWhereHas('seller', fn($q) =>
+                      $q->where('name', 'ilike', "%{$query}%")
+                  )
+                  ->orWhereHas('seller.sellerApplication', fn($q) =>
+                      $q->where('store_name', 'ilike', "%{$query}%")
+                  );
             }))
             ->when($catName, fn($q) => $q->whereHas('category', fn($q) =>
                 $q->where('name', 'ilike', "%{$catName}%")
@@ -159,7 +170,14 @@ class ProductController extends Controller
                 $q->where('name', 'ilike', "%{$petType}%")
             ))
             ->when($petCat,  fn($q) => $q->where('category_id', $petCat))
-            ->when($prodCat, fn($q) => $q->where('product_category', $prodCat))
+            ->when($prodCat, function ($q) use ($prodCat) {
+                if (is_numeric($prodCat)) {
+                    $productCategoryName = Category::where('type', 'product')->where('id', $prodCat)->value('name');
+                    return $productCategoryName ? $q->where('product_category', $productCategoryName) : $q;
+                }
+
+                return $q->where('product_category', $prodCat);
+            })
             ->latest()
             ->paginate(16)
             ->withQueryString();

@@ -41,7 +41,7 @@
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 text-center">
         
         <div class="col">
-            <a href="{{ route('products.catalog', ['category' => 'Food']) }}" class="text-decoration-none">
+            <a href="{{ route('products.catalog', ['product_category' => 'Food']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
                     <img src="{{ asset('storage/banners/pet1.png') }}" alt="Pet Food" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Pet Food & Treats</h6>
@@ -50,7 +50,7 @@
         </div>
 
         <div class="col">
-            <a href="{{ route('products.catalog', ['category' => 'toys']) }}" class="text-decoration-none">
+            <a href="{{ route('products.catalog', ['product_category' => 'Clothes']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
                     <img src="{{ asset('storage/banners/pet2.png') }}" alt="Toys" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Pet Toys</h6>
@@ -59,7 +59,7 @@
         </div>
 
         <div class="col">
-            <a href="{{ route('products.catalog', ['category' => 'accessories']) }}" class="text-decoration-none">
+            <a href="{{ route('products.catalog', ['product_category' => 'Accessories']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
                     <img src="{{ asset('storage/banners/pet3.png') }}" alt="Accessories" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Beds & Accessories</h6>
@@ -68,7 +68,7 @@
         </div>
 
         <div class="col">
-            <a href="{{ route('products.catalog', ['category' => 'grooming products']) }}" class="text-decoration-none">
+            <a href="{{ route('products.catalog', ['product_category' => 'Grooming Products']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
                     <img src="{{ asset('storage/banners/pet4.png') }}" alt="Grooming" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Grooming Kits</h6>
@@ -77,7 +77,7 @@
         </div>
 
         <div class="col">
-            <a href="{{ route('products.catalog', ['category' => 'medicine']) }}" class="text-decoration-none">
+            <a href="{{ route('products.catalog', ['product_category' => 'Medicine']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
                     <img src="{{ asset('storage/banners/pet5.png') }}" alt="Health" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Health & Vitamins</h6>
@@ -109,7 +109,7 @@
                 <div class="col">
                     <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
                         
-                        <img src="{{ asset($loop_product->image ?? 'images/pet3.png') }}"
+                        <img src="{{ $loop_product->image_url }}"
                              class="card-img-top p-4"
                              alt="{{ $loop_product->name }}"
                              style="object-fit: contain; height: 180px;">

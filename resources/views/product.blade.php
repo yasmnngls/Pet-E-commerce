@@ -122,7 +122,7 @@
                     <div class="col">
                         <a href="{{ route('product.show', $rel->slug) }}" class="text-decoration-none">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card">
-                                <img src="{{ asset($rel->image ?? 'images/pet3.jpg') }}"
+                                <img src="{{ $rel->image_url }}"
                                      class="card-img-top p-3"
                                      alt="{{ $rel->name }}"
                                      style="height: 150px; object-fit: contain;">

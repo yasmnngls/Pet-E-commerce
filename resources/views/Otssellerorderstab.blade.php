@@ -41,11 +41,7 @@
                 <tbody>
                     @forelse($orders as $order)
                         @php
-                            $orderImageUrl = $order->product_image
-                                ? (file_exists(storage_path('app/public/' . $order->product_image))
-                                    ? asset('storage/' . $order->product_image)
-                                    : (file_exists(public_path($order->product_image)) ? asset($order->product_image) : 'https://via.placeholder.com/70'))
-                                : 'https://via.placeholder.com/70';
+                            $orderImageUrl = $order->product_image_url ?? 'https://via.placeholder.com/70';
                         @endphp
                         <tr>
                             <td class="ps-3">

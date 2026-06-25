@@ -140,7 +140,7 @@
                             @php $product = $cartItem->item; @endphp
                             @if($product)
                                 <div class="d-flex align-items-center gap-3">
-                                    <img src="{{ asset($product->image ?? 'images/pet3.jpg') }}"
+                                     <img src="{{ $product->image_url }}"
                                          alt="{{ $product->name }}"
                                          class="rounded-3 border bg-light p-1"
                                          style="width: 55px; height: 55px; object-fit: contain;">

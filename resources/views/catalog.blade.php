@@ -39,7 +39,7 @@
                 {{-- Pet Category --}}
                 <h6 class="fw-bold mb-3" style="color: brown;">By Pet</h6>
                 <div class="d-flex flex-column gap-2 mb-4">
-                    <a href="{{ route('products.catalog') }}"
+                    <a href="{{ route('products.catalog') }}{{ $query ? '?q='.urlencode($query) : '' }}"
                        class="btn btn-sm rounded-pill text-start {{ !$petCat && !$petType ? 'text-white' : 'btn-light border' }}"
                        style="{{ !$petCat && !$petType ? 'background-color: brown;' : '' }}">
                         All Pets
@@ -56,10 +56,15 @@
                 {{-- Product Category --}}
                 <h6 class="fw-bold mb-3" style="color: brown;">By Type</h6>
                 <div class="d-flex flex-column gap-2">
+                    <a href="{{ route('products.catalog') }}{{ $query ? '?q='.urlencode($query) : '' }}{{ $petCat ? ($query ? '&' : '?').'pet_category='.$petCat : '' }}"
+                       class="btn btn-sm rounded-pill text-start {{ !$prodCat ? 'text-white' : 'btn-light border' }}"
+                       style="{{ !$prodCat ? 'background-color: brown;' : '' }}">
+                        All Types
+                    </a>
                     @foreach($productCategories as $cat)
-                        <a href="{{ route('products.catalog') }}?product_category={{ $cat->id }}{{ $query ? '&q='.$query : '' }}"
-                           class="btn btn-sm rounded-pill text-start {{ $prodCat == $cat->id ? 'text-white' : 'btn-light border' }}"
-                           style="{{ $prodCat == $cat->id ? 'background-color: brown;' : '' }}">
+                        <a href="{{ route('products.catalog') }}?product_category={{ urlencode($cat->name) }}{{ $query ? '&q='.urlencode($query) : '' }}{{ $petCat ? '&pet_category='.$petCat : '' }}"
+                           class="btn btn-sm rounded-pill text-start {{ $prodCat == $cat->name ? 'text-white' : 'btn-light border' }}"
+                           style="{{ $prodCat == $cat->name ? 'background-color: brown;' : '' }}">
                             {{ $cat->name }}
                         </a>
                     @endforeach
@@ -90,10 +95,10 @@
                         <div class="col">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card">
 
-                                <img src="{{ asset($product->image ?? 'images/pet3.png') }}"
-                                     class="card-img-top p-3"
-                                     alt="{{ $product->name }}"
-                                     style="object-fit: contain; height: 160px;">
+                                  <img src="{{ $product->image_url }}"
+                                      class="card-img-top p-3"
+                                      alt="{{ $product->name }}"
+                                      style="object-fit: contain; height: 160px;">
 
                                 <div class="card-body d-flex flex-column pt-0">
                                     <small class="text-muted mb-1 fw-medium">
