@@ -48,29 +48,37 @@
       </form>
 
       <div class="d-flex align-items-center gap-4">
-      <a href="{{ route('cart.index') }}" class="text-white fs-5 text-decoration-none position-relative mt-1">
-        <i class="bi bi-cart3"></i>
-        @auth
+        <a href="{{ route('cart.index') }}" class="text-white fs-5 text-decoration-none position-relative mt-1">
+          <i class="bi bi-cart3"></i>
+          @auth
+            @php
+              $cartCount = \App\Http\Controllers\CartController::cartCount();
+            @endphp
+            @if($cartCount > 0)
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 0.65rem;">
+                {{ $cartCount }}
+              </span>
+            @endif
+          @endauth
+        </a>
+
+        <div class="vr text-white opacity-75" style="min-height: 35px; width: 2px;"></div>
+
+        <a href="#profileOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="profileOffcanvas" style="outline: none;">
           @php
-            $cartCount = \App\Http\Controllers\CartController::cartCount();
+            $profilePic = Auth::check() && Auth::user()->profile_picture
+              ? (str_starts_with(Auth::user()->profile_picture, 'http')
+                  ? Auth::user()->profile_picture
+                  : asset(Auth::user()->profile_picture))
+              : asset('banners/pet1.png');
           @endphp
-          @if($cartCount > 0)
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 0.65rem;">
-              {{ $cartCount }}
-            </span>
-          @endif
-        @endauth
-      </a>
-
-      <div class="vr text-white opacity-75" style="min-height: 35px; width: 2px;"></div>
-
-      <a href="#profileOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="profileOffcanvas" style="outline: none;">
-        <img src="{{ Auth::check() && Auth::user()->profile_picture ? asset(Auth::user()->profile_picture) : asset('storage/banners/pet1.png') }}" 
-             alt="Profile" width="45" height="45" class="rounded-circle border border-2 border-light shadow-sm" style="object-fit: cover;">
-      </a>
+          <img src="{{ $profilePic }}"
+               alt="Profile" width="45" height="45"
+               class="rounded-circle border border-2 border-light shadow-sm"
+               style="object-fit: cover;">
+        </a>
       </div>
     </div>
-
   </div>
 </nav>
 
@@ -88,8 +96,17 @@
     @auth
     <div class="p-4" style="background-color: #F5EFE6;">
         <div class="d-flex align-items-center gap-3">
-            <img src="{{ auth()->user()->profile_picture ? asset(auth()->user()->profile_picture) : asset('storage/banners/pet1.png') }}" 
-                 alt="Profile" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm" style="object-fit: cover;">
+            @php
+              $offcanvasPic = auth()->user()->profile_picture
+                ? (str_starts_with(auth()->user()->profile_picture, 'http')
+                    ? auth()->user()->profile_picture
+                    : asset(auth()->user()->profile_picture))
+                : asset('banners/pet1.png');
+            @endphp
+            <img src="{{ $offcanvasPic }}"
+                 alt="Profile" width="60" height="60"
+                 class="rounded-circle border border-2 border-white shadow-sm"
+                 style="object-fit: cover;">
             <div>
                 <h5 class="fw-bold m-0 text-dark">{{ auth()->user()->name }}</h5>
                 <span class="small text-muted">{{ auth()->user()->email }}</span>
