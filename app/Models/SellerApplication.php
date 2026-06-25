@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class SellerApplication extends Model
 {
@@ -11,6 +12,7 @@ class SellerApplication extends Model
 
     protected $fillable = [
         'user_id',
+        'logo_path',
         'store_name',
         'store_type',
         'legal_name',
@@ -31,6 +33,37 @@ class SellerApplication extends Model
         'status',
         'admin_notes'
     ];
+
+    protected $appends = [
+        'logo_url',
+    ];
+
+    public function getLogoUrlAttribute()
+    {
+        if (empty($this->logo_path)) {
+            return asset('images/default-store.png');
+        }
+
+        if (str_starts_with($this->logo_path, 'http://') || str_starts_with($this->logo_path, 'https://')) {
+            return $this->logo_path;
+        }
+
+        $path = str_replace('\\', '/', trim($this->logo_path));
+
+        if (str_contains($path, 'storage/app/public/')) {
+            $path = substr($path, strpos($path, 'storage/app/public/') + strlen('storage/app/public/'));
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+
+        return asset('storage/' . ltrim($path, '/'));
+    }
 
     /**
      * Define the inverse relationship linking the application back to its Buyer/User account

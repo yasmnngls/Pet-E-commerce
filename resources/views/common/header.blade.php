@@ -1,43 +1,53 @@
 <nav class="navbar navbar-expand-lg custom-nav px-4 py-2" data-bs-theme="dark">
-  <div class="container-fluid p-0 d-flex align-items-center justify-content-between">
-    
-    <div class="d-flex align-items-center gap-3">
-      <a class="navbar-brand fw-bold mb-0 text-white fs-4 d-flex align-items-center gap-2" href="{{ route('landing') }}">
-        <i class="bi bi-shop"></i> PowerPuff Pets
-      </a>
+  <div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between gap-3 w-100">
+      <div class="d-flex align-items-center gap-3">
+        <a class="navbar-brand fw-bold mb-0 text-white fs-4 d-flex align-items-center gap-2" href="{{ route('landing') }}">
+          <i class="bi bi-shop"></i> PowerPuff Pets
+        </a>
 
-      <div class="dropdown d-none d-lg-block">
-        <button class="btn btn-link text-white text-decoration-none dropdown-toggle fw-medium" type="button" data-bs-toggle="dropdown">
-          Categories
-        </button>
-        <ul class="dropdown-menu shadow-sm mt-2">
-          <li><h6 class="dropdown-header">Pet Categories</h6></li>
-          @php
-            $petCategories = \App\Models\Category::where('type', 'pet')->get();
-          @endphp
-          @foreach($petCategories as $petCategory)
-            <li><a class="dropdown-item" href="#">{{ $petCategory->name }}</a></li>
-          @endforeach
-          <li><hr class="dropdown-divider"></li>
-          <li><h6 class="dropdown-header">Product Categories</h6></li>
-          @php
-            $productCategories = \App\Models\Category::where('type', 'product')->get();
-          @endphp
-          @foreach($productCategories as $productCategory)
-            <li><a class="dropdown-item" href="#">{{ $productCategory->name }}</a></li>
-          @endforeach
-        </ul>
+        <div class="dropdown d-none d-lg-block">
+          <button class="btn btn-link text-white text-decoration-none dropdown-toggle fw-medium" type="button" data-bs-toggle="dropdown">
+            Categories
+          </button>
+          <ul class="dropdown-menu shadow-sm mt-2">
+            <li><h6 class="dropdown-header">Pet Categories</h6></li>
+            @php
+              $petCategories = \App\Models\Category::where('type', 'pet')->get();
+            @endphp
+            @foreach($petCategories as $petCategory)
+              <li>
+                <a class="dropdown-item" href="{{ route('products.catalog', ['pet_category' => $petCategory->id]) }}">
+                  {{ $petCategory->name }}
+                </a>
+              </li>
+            @endforeach
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li><h6 class="dropdown-header">Product Categories</h6></li>
+            @php
+              $productCategories = \App\Models\Category::where('type', 'product')->get();
+            @endphp
+            @foreach($productCategories as $productCategory)
+              <li>
+                <a class="dropdown-item" href="{{ route('products.catalog', ['product_category' => $productCategory->name]) }}">
+                  {{ $productCategory->name }}
+                </a>
+              </li>
+            @endforeach
+          </ul>
+        </div>
       </div>
-    </div>
 
-    <form class="d-flex mx-auto w-50" role="search">
-      <input class="form-control rounded-start-pill bg-white text-dark border-0 px-4 py-2" type="search" placeholder="Search for products, brands..." aria-label="Search">
-      <button class="btn text-white rounded-end-pill px-4" type="button" style="background-color: #8b2323;">
-        <i class="bi bi-search"></i>
-      </button>
-    </form>
+      <form class="d-flex flex-fill mx-4" role="search" action="{{ route('products.catalog') }}" method="GET" style="max-width: 700px;">
+        <input class="form-control rounded-start-pill bg-white text-dark border-0 px-4 py-2 flex-grow-1" type="search" name="q" placeholder="Search for products, brands..." aria-label="Search">
+        <button class="btn text-white rounded-end-pill px-4" type="submit" style="background-color: #8b2323;">
+          <i class="bi bi-search"></i>
+        </button>
+      </form>
 
-    <div class="d-flex align-items-center gap-4">
+      <div class="d-flex align-items-center gap-4">
       <a href="{{ route('cart.index') }}" class="text-white fs-5 text-decoration-none position-relative mt-1">
         <i class="bi bi-cart3"></i>
         @auth
@@ -58,6 +68,7 @@
         <img src="{{ Auth::check() && Auth::user()->profile_picture ? asset(Auth::user()->profile_picture) : asset('storage/banners/pet1.png') }}" 
              alt="Profile" width="45" height="45" class="rounded-circle border border-2 border-light shadow-sm" style="object-fit: cover;">
       </a>
+      </div>
     </div>
 
   </div>

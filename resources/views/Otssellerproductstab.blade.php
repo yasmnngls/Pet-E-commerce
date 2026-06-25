@@ -4,40 +4,53 @@
 <div class="custom-card p-4 mb-4">
     <div class="row align-items-center">
         <div class="col-auto">
-            <img src="{{ $store->logo_path ?? asset('images/default-store.png') }}" 
+            <img src="{{ $store?->logo_url ?? asset('images/default-store.png') }}" 
                  alt="Store Logo" 
                  class="rounded-circle border" 
                  style="width: 100px; height: 100px; object-fit: cover;">
         </div>
         <div class="col">
-            <h2 class="fw-bold">{{ $store->name ?? 'Your Store Name' }}</h2>
-            <p class="text-muted mb-0">{{ $store->description ?? 'Add a nice description for your store here...' }}</p>
+            <h2 class="fw-bold">{{ $store?->store_name ?? 'Your Store Name' }}</h2>
+            <p class="text-muted mb-0">{{ $store?->store_description ?? 'Add a nice description for your store here...' }}</p>
         </div>
         <div class="col-auto text-end">
-            <button class="btn btn-outline-secondary">Edit Store Profile</button>
+            <a href="{{ route('seller.profile.edit') }}" class="btn btn-outline-secondary">Edit Store Profile</a>
         </div>
     </div>
 </div>
 
     <div class="d-flex justify-content-between align-items-center flex-wrap flex-md-nowrap pb-3 mb-4 border-bottom">
         <h1 class="h3 font-weight-bold">Seller Product Management</h1>
-        <div class="d-flex gap-3 align-items-center">
-            <div class="input-group" style="width: 300px;">
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+            <form method="GET" action="{{ route('seller.products') }}" class="input-group" style="width: 300px;">
                 <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" class="form-control border-start-0" placeholder="Search products...">
+                <input type="text" name="q" value="{{ $searchQuery ?? '' }}" class="form-control border-start-0" placeholder="Search products...">
+                    <button type="submit" class="btn btn-ppp-red text-white rounded-end-3 px-3">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                </form>
+                <button class="btn btn-ppp-red py-2 px-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    <i class="fa-solid fa-plus me-1"></i> ADD NEW PRODUCT
+                </button>
             </div>
-            <button class="btn btn-ppp-red py-2 px-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                <i class="fa-solid fa-plus me-1"></i> ADD NEW PRODUCT
-            </button>
         </div>
-    </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+        <div class="mb-4">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted small">Filter by pet category:</span>
+                <a href="{{ route('seller.products') }}{{ $searchQuery ? '?q='.urlencode($searchQuery) : '' }}"
+                   class="btn btn-sm rounded-pill {{ empty($selectedPetCategory) ? 'btn-ppp-red text-white' : 'btn-light border' }}">
+                    All Pets
+                </a>
+                @foreach($petCategories as $petCategory)
+                    <a href="{{ route('seller.products') }}?pet_category={{ $petCategory->id }}{{ $searchQuery ? '&q='.urlencode($searchQuery) : '' }}"
+                       class="btn btn-sm rounded-pill {{ $selectedPetCategory == $petCategory->id ? 'btn-ppp-red text-white' : 'btn-light border' }}">
+                        {{ $petCategory->name }}
+                    </a>
+                @endforeach
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    @endif
+  
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
@@ -67,45 +80,7 @@
                 <tbody>
                     @forelse($products as $product)
                         @php
-                            $productImageUrl = asset('storage/images/pet3.jpg');
-                            $imagePath = $product->image ?? '';
-
-                            if (!empty($imagePath)) {
-                                $normalizedImagePath = ltrim($imagePath, '/');
-                                $candidatePaths = [];
-
-                                if (str_starts_with($normalizedImagePath, 'images/')) {
-                                    $candidatePaths[] = 'storage/' . $normalizedImagePath;
-                                } elseif (str_starts_with($normalizedImagePath, 'storage/')) {
-                                    $candidatePaths[] = $normalizedImagePath;
-                                } else {
-                                    $candidatePaths[] = 'storage/' . $normalizedImagePath;
-                                }
-
-                                $candidatePaths[] = 'storage/images/products/' . basename($normalizedImagePath);
-                                $candidatePaths[] = 'images/products/' . basename($normalizedImagePath);
-                                $candidatePaths[] = 'storage/products/' . basename($normalizedImagePath);
-                                $candidatePaths[] = 'products/' . basename($normalizedImagePath);
-
-                                foreach ($candidatePaths as $candidatePath) {
-                                    if (file_exists(public_path($candidatePath))) {
-                                        $productImageUrl = asset($candidatePath);
-                                        break;
-                                    }
-
-                                    $storageCandidatePath = str_starts_with($candidatePath, 'storage/')
-                                        ? ltrim(substr($candidatePath, 8), '/')
-                                        : ltrim($candidatePath, '/');
-
-                                    if (file_exists(storage_path('app/public/' . $storageCandidatePath))) {
-                                        $publicCandidatePath = str_starts_with($candidatePath, 'storage/')
-                                            ? $candidatePath
-                                            : 'storage/' . $candidatePath;
-                                        $productImageUrl = asset($publicCandidatePath);
-                                        break;
-                                    }
-                                }
-                            }
+                            $productImageUrl = $product->image_url;
 
                             $categoryIcon = 'fa-paw';
                             switch(strtolower($product->category_name ?? '')) {
@@ -151,6 +126,7 @@
                                         data-name="{{ $product->name }}"
                                         data-description="{{ $product->description }}"
                                         data-category="{{ $product->category_id }}"
+                                        data-product-category="{{ $product->product_category }}"
                                         data-stocks="{{ $product->stock_quantity }}"
                                         data-price="{{ $product->price }}"
                                         data-image="{{ $productImageUrl }}">

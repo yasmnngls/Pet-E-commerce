@@ -28,14 +28,15 @@ class CartController extends Controller
 
         if ($cart) {
             $items = CartItem::where('cart_id', $cart->id)
-                ->with('item') // polymorphic: resolves to Product
+                ->with('item.seller.sellerApplication') // polymorphic: resolves to Product and seller data
                 ->get()
                 ->filter(fn($ci) => $ci->item !== null); // drop orphaned rows
         }
 
+        $groupedItems = $items->groupBy(fn($ci) => $ci->item->seller_id ?? 0);
         $subtotal = $items->sum(fn($ci) => $ci->item->price * $ci->quantity);
 
-        return view('cart', compact('items', 'subtotal'));
+        return view('cart', compact('groupedItems', 'subtotal'));
     }
 
     /**

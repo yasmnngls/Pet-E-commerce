@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -45,22 +46,7 @@ class Product extends Model
 
     public function getFeaturedImageAttribute()
     {
-        if (empty($this->image)) {
-            return asset('images/pet3.jpg');
-        }
-
-        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
-            return $this->image;
-        }
-
-        $path = ltrim($this->image, '/');
-        $filename = basename($path);
-
-        if ($filename) {
-            return asset('banner/' . $filename);
-        }
-
-        return asset('images/pet3.jpg');
+        return $this->resolveImageUrl($this->image);
     }
 
     public function getFeaturedImageUrlAttribute()
@@ -73,8 +59,45 @@ class Product extends Model
         return $this->featured_image;
     }
 
-    public function getCategoryDisplayNameAttribute()
+    protected function resolveImageUrl($path)
     {
-        return $this->category->name ?? 'General';
-    }
-}
+        $fallback = asset('images/pet3.jpg');
+
+        if (empty($path)) {
+            return $fallback;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $p = str_replace('\\', '/', trim($path));
+        $p = ltrim($p, '/');
+
+        if (str_contains($p, 'storage/app/public/')) {
+            $p = substr($p, strpos($p, 'storage/app/public/') + strlen('storage/app/public/'));
+        }
+        if (str_starts_with($p, 'app/public/')) {
+            $p = substr($p, strlen('app/public/'));
+        }
+        if (str_starts_with($p, 'public/')) {
+            $p = substr($p, strlen('public/'));
+        }
+        if (str_starts_with($p, 'storage/')) {
+            $p = substr($p, strlen('storage/'));
+        }
+
+        if (str_starts_with($p, 'storage/')) {
+            return asset($p);
+        }
+
+        if (file_exists(public_path($p))) {
+            return asset($p);
+        }
+
+        if (file_exists(storage_path('app/public/' . $p))) {
+            return asset('storage/' . $p);
+        }
+
+        return asset('storage/' . $p);
+    }}
