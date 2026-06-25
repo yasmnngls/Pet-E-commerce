@@ -50,7 +50,7 @@
         </div>
 
         <div class="col">
-            <a href="{{ route('products.catalog', ['product_category' => 'Clothes']) }}" class="text-decoration-none">
+            <a href="{{ route('products.catalog', ['product_category' => 'Toys']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
                     <img src="{{ asset('storage/banners/pet2.png') }}" alt="Toys" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Pet Toys</h6>
