@@ -9,19 +9,21 @@ class SupabaseStorageService
 
     public function __construct()
     {
-        // Ensure these match your .env keys
+        // Ensure these exactly match your .env file
         $this->url = env('SUPABASE_URL');
-        $this->key = env('SUPABASE_SERVICE_ROLE_KEY');
+        $this->key = env('SUPABASE_KEY'); 
     }
 
-    public function upload($file, $bucket)
+    public function upload($file, $bucket = 'products')
     {
-        // Construct the full Supabase Storage path
-        $path = $bucket . '/' . $file->hashName();
+        // Create a clean, unique filename
+        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9.\-_]/', '', $file->getClientOriginalName());
+        $path = $bucket . '/' . $filename;
+        
+        // The API endpoint to upload the file
         $uploadUrl = $this->url . '/storage/v1/object/' . $path;
 
         $ch = curl_init($uploadUrl);
-        
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($file->getRealPath()));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -31,7 +33,7 @@ class SupabaseStorageService
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         
-        // Windows/Local Development connection fixes
+        // CRITICAL FIX FOR WINDOWS LOCALHOST: Ignores local SSL verification
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
@@ -40,10 +42,12 @@ class SupabaseStorageService
         $error = curl_error($ch);
         curl_close($ch);
 
-        if ($httpCode !== 200) {
-            dd("HTTP CODE: " . $httpCode, "CURL ERROR: " . $error, "RESPONSE: " . $response);
+        // If successful, return the public URL that anyone can view
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return $this->url . '/storage/v1/object/public/' . $path;
         }
 
-        return $path; // Returns the path to be saved in your database
+        // If it fails, dump the error so we can see exactly why
+        dd("HTTP CODE: " . $httpCode, "CURL ERROR: " . $error, "RESPONSE: " . $response);
     }
 }
