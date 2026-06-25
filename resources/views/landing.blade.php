@@ -7,7 +7,7 @@
         
         <div class="col-lg-8">
             <div class="card border-0 rounded-4 overflow-hidden shadow-sm ratio ratio-16x9">
-                <img src="{{ asset('storage/banners/main.png') }}" 
+                <img src="{{ asset('banner/main.png') }}" 
                      class="object-fit-cover" 
                      alt="Bubble Up the Fun">
             </div>
@@ -16,13 +16,13 @@
         <div class="col-lg-4 d-flex flex-column gap-3">
             
             <div class="card border-0 rounded-4 overflow-hidden shadow-sm ratio ratio-16x9">
-                <img src="{{ asset('storage/banners/small1.png') }}" 
+                <img src="{{ asset('banner/small1.png') }}" 
                      class="object-fit-cover" 
                      alt="We Care About Your Pet">
             </div>
 
             <div class="card border-0 rounded-4 overflow-hidden shadow-sm ratio ratio-16x9 mt-auto">
-                <img src="{{ asset('storage/banners/small2.png') }}" 
+                <img src="{{ asset('banner/small2.png') }}" 
                      class="object-fit-cover" 
                      alt="Pawsome Deals">
             </div>
@@ -43,7 +43,7 @@
         <div class="col">
             <a href="{{ route('products.catalog', ['product_category' => 'Food']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
-                    <img src="{{ asset('storage/banners/pet1.png') }}" alt="Pet Food" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
+                    <img src="{{ asset('banner/pet1.png') }}" alt="Pet Food" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Pet Food & Treats</h6>
                 </div>
             </a>
@@ -52,7 +52,7 @@
         <div class="col">
             <a href="{{ route('products.catalog', ['product_category' => 'Toys']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
-                    <img src="{{ asset('storage/banners/pet2.png') }}" alt="Toys" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
+                    <img src="{{ asset('banner/pet2.png') }}" alt="Toys" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Pet Toys</h6>
                 </div>
             </a>
@@ -61,7 +61,7 @@
         <div class="col">
             <a href="{{ route('products.catalog', ['product_category' => 'Accessories']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
-                    <img src="{{ asset('storage/banners/pet3.png') }}" alt="Accessories" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
+                    <img src="{{ asset('banner/pet3.png') }}" alt="Accessories" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Beds & Accessories</h6>
                 </div>
             </a>
@@ -70,7 +70,7 @@
         <div class="col">
             <a href="{{ route('products.catalog', ['product_category' => 'Grooming Products']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
-                    <img src="{{ asset('storage/banners/pet4.png') }}" alt="Grooming" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
+                    <img src="{{ asset('banner/pet4.png') }}" alt="Grooming" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Grooming Kits</h6>
                 </div>
             </a>
@@ -79,7 +79,7 @@
         <div class="col">
             <a href="{{ route('products.catalog', ['product_category' => 'Medicine']) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background-color: brown; transition: transform 0.2s;">
-                    <img src="{{ asset('storage/banners/pet5.png') }}" alt="Health" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
+                    <img src="{{ asset('banner/pet5.png') }}" alt="Health" class="img-fluid mx-auto mb-2" style="max-height: 80px; object-fit: contain;">
                     <h6 class="text-white fw-medium mb-0">Health & Vitamins</h6>
                 </div>
             </a>
@@ -106,10 +106,15 @@
     @else
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
             @foreach($bestSellers as $loop_product)
+                @php
+                    $imgSrc = $loop_product->image
+                        ? (str_starts_with($loop_product->image, 'http') ? $loop_product->image : asset($loop_product->image))
+                        : asset('images/pet3.png');
+                @endphp
                 <div class="col">
                     <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden product-card">
                         
-                        <img src="{{ $loop_product->image_url }}"
+                        <img src="{{ $imgSrc }}"
                              class="card-img-top p-4"
                              alt="{{ $loop_product->name }}"
                              style="object-fit: contain; height: 180px;">
@@ -175,7 +180,7 @@
             </div>
 
             <div class="col-lg-5 d-none d-lg-block position-relative h-100">
-                <img src="{{ asset('storage/banners/apply.png') }}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 400px;" alt="Become a Vendor">
+                <img src="{{ asset('banner/apply.png') }}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 400px;" alt="Become a Vendor">
                 <div class="position-absolute top-0 start-0 h-100" style="width: 100px;"></div>
             </div>
         </div>
@@ -190,7 +195,6 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    
     .product-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -198,7 +202,6 @@
         transform: translateY(-5px);
         box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
     }
-
     .service-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
     .service-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
 </style>
