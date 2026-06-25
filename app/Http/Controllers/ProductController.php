@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
-use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,9 +28,6 @@ class ProductController extends Controller
         return view('product', compact('product', 'related'));
     }
 
-    /**
-     * Display all products belonging to the logged-in seller
-     */
     public function index()
     {
         $sellerId = Auth::id() ?? 4;
@@ -48,9 +44,6 @@ class ProductController extends Controller
         return view('Otssellerproductstab', compact('products', 'categories'));
     }
 
-    /**
-     * Add a new product to your catalog
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -67,8 +60,10 @@ class ProductController extends Controller
         $imagePath = null;
 
         if ($request->hasFile('product_image')) {
-            $storage   = new SupabaseStorageService();
-            $imagePath = $storage->upload($request->file('product_image'));
+            $file = $request->file('product_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('products'), $filename);
+            $imagePath = 'products/' . $filename;
         }
 
         DB::table('products')->insert([
@@ -89,9 +84,6 @@ class ProductController extends Controller
         return redirect()->back()->with('success', 'Product submitted for admin approval!');
     }
 
-    /**
-     * Update an existing product listing
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -124,23 +116,22 @@ class ProductController extends Controller
         ];
 
         if ($request->hasFile('product_image')) {
-            $storage               = new SupabaseStorageService();
-            $updateData['image']   = $storage->upload($request->file('product_image'));
+            $file = $request->file('product_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('products'), $filename);
+            $updateData['image'] = 'products/' . $filename;
         }
 
         DB::table('products')->where('id', $id)->update($updateData);
 
-        return redirect()->back()->with('success', 'Product updated and resubmitted for approval.');
+        return redirect()->back()->with('success', 'Product updated successfully.');
     }
 
-    /**
-     * Delete a product listing
-     */
     public function destroy($id)
     {
         $sellerId = Auth::id() ?? 4;
         DB::table('products')->where('id', $id)->where('seller_id', $sellerId)->delete();
-        return redirect()->back()->with('success', 'Listing deleted cleanly from database.');
+        return redirect()->back()->with('success', 'Listing deleted cleanly.');
     }
 
     public function catalog(Request $request)
@@ -157,22 +148,12 @@ class ProductController extends Controller
                 $q->where('name', 'ilike', "%{$query}%")
                   ->orWhere('description', 'ilike', "%{$query}%")
                   ->orWhere('product_category', 'ilike', "%{$query}%")
-                  ->orWhereHas('category', fn($q) =>
-                      $q->where('name', 'ilike', "%{$query}%")
-                  )
-                  ->orWhereHas('seller', fn($q) =>
-                      $q->where('name', 'ilike', "%{$query}%")
-                  )
-                  ->orWhereHas('seller.sellerApplication', fn($q) =>
-                      $q->where('store_name', 'ilike', "%{$query}%")
-                  );
+                  ->orWhereHas('category', fn($q) => $q->where('name', 'ilike', "%{$query}%"))
+                  ->orWhereHas('seller', fn($q) => $q->where('name', 'ilike', "%{$query}%"))
+                  ->orWhereHas('seller.sellerApplication', fn($q) => $q->where('store_name', 'ilike', "%{$query}%"));
             }))
-            ->when($catName, fn($q) => $q->whereHas('category', fn($q) =>
-                $q->where('name', 'ilike', "%{$catName}%")
-            ))
-            ->when($petType, fn($q) => $q->whereHas('category', fn($q) =>
-                $q->where('name', 'ilike', "%{$petType}%")
-            ))
+            ->when($catName, fn($q) => $q->whereHas('category', fn($q) => $q->where('name', 'ilike', "%{$catName}%")))
+            ->when($petType, fn($q) => $q->whereHas('category', fn($q) => $q->where('name', 'ilike', "%{$petType}%")))
             ->when($petCat, fn($q) => $q->where('category_id', $petCat))
             ->when($prodCat, function ($q) use ($prodCat) {
                 if (is_numeric($prodCat)) {

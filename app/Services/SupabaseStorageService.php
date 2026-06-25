@@ -2,55 +2,48 @@
 
 namespace App\Services;
 
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
-
 class SupabaseStorageService
 {
     private string $url;
     private string $key;
-    private string $bucket;
 
     public function __construct()
     {
-        $this->url    = rtrim(config('services.supabase.url'), '/');
-        $this->key    = config('services.supabase.key');
-        $this->bucket = config('services.supabase.bucket');
+        // Ensure these match your .env keys
+        $this->url = env('SUPABASE_URL');
+        $this->key = env('SUPABASE_SERVICE_ROLE_KEY');
     }
 
-    /**
-     * Upload a file to Supabase Storage and return the public URL.
-     */
-    public function upload(UploadedFile $file, string $folder = 'products'): string
+    public function upload($file, $bucket)
     {
-        $extension = $file->getClientOriginalExtension();
-        $filename  = $folder . '/' . Str::uuid() . '.' . $extension;
-        $contents  = file_get_contents($file->getRealPath());
-        $mimeType  = $file->getMimeType();
+        // Construct the full Supabase Storage path
+        $path = $bucket . '/' . $file->hashName();
+        $uploadUrl = $this->url . '/storage/v1/object/' . $path;
 
-        $endpoint = "{$this->url}/storage/v1/object/{$this->bucket}/{$filename}";
-
-        $ch = curl_init($endpoint);
-        curl_setopt_array($ch, [
-            CURLOPT_CUSTOMREQUEST  => 'POST',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER     => [
-                'Authorization: Bearer ' . $this->key,
-                'Content-Type: ' . $mimeType,
-                'x-upsert: true',
-            ],
-            CURLOPT_POSTFIELDS     => $contents,
+        $ch = curl_init($uploadUrl);
+        
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($file->getRealPath()));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $this->key,
+            'apikey: ' . $this->key,
+            'Content-Type: ' . $file->getMimeType(),
         ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Windows/Local Development connection fixes
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            throw new \Exception('Supabase Storage upload failed: ' . $response);
+            dd("HTTP CODE: " . $httpCode, "CURL ERROR: " . $error, "RESPONSE: " . $response);
         }
 
-        // Return the public URL
-        return "{$this->url}/storage/v1/object/public/{$this->bucket}/{$filename}";
+        return $path; // Returns the path to be saved in your database
     }
 }
