@@ -151,23 +151,35 @@
                     <h2 class="brand-title m-0 text-white">POWERPUFF<br><span style="color: #f4eee1;">PETS</span></h2>
                 </div>
                 <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::is('seller/products*') ? 'active' : '' }}" href="/seller/products">
-                                <i class="fa-solid fa-box me-2"></i> PRODUCTS
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::is('seller/orders*') ? 'active' : '' }}" href="/seller/orders">
-                                <i class="fa-solid fa-list-check me-2"></i> ORDERS
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::is('seller/earnings*') ? 'active' : '' }}" href="/seller/earnings">
-                                <i class="fa-solid fa-wallet me-2"></i> EARNINGS
-                            </a>
-                        </li>
-                        <li class="nav-item mt-4">
-                        <a class="nav-link text-warning" href="#"><i class="fa-solid fa-right-from-bracket me-2"></i> LOG OUT</a>
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::is('seller/products*') ? 'active' : '' }}" href="/seller/products">
+                            <i class="fa-solid fa-box me-2"></i> PRODUCTS
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::is('seller/orders*') ? 'active' : '' }}" href="/seller/orders">
+                            <i class="fa-solid fa-list-check me-2"></i> ORDERS
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::is('seller/earnings*') ? 'active' : '' }}" href="/seller/earnings">
+                            <i class="fa-solid fa-wallet me-2"></i> EARNINGS
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-4 border-top pt-3 mx-3" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <a class="nav-link text-white text-center rounded-pill" style="background-color: rgba(0,0,0,0.2);" href="{{ route('landing') }}">
+                            <i class="fa-solid fa-store me-2"></i> BACK TO SHOPPING
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-2 mx-3">
+                        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+                            @csrf
+                            <button type="submit" class="nav-link text-warning w-100 text-center border-0 bg-transparent fw-bold" style="cursor: pointer;">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i> LOG OUT
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>

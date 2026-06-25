@@ -6,12 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class CartItem extends Model
 {
-public function cart() { 
-    return $this->belongsTo(Cart::class); 
-    }
-    
-public function item() { 
-    return $this->morphTo(); 
+    protected $fillable = ['cart_id', 'item_type', 'item_id', 'quantity'];
+
+    public function cart()
+    {
+        return $this->belongsTo(Cart::class);
     }
 
+    public function item()
+    {
+        return $this->morphTo();
+    }
 }

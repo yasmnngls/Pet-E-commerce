@@ -1,6 +1,24 @@
 @extends('Otssellertabslayout')
 
 @section('content')
+<div class="custom-card p-4 mb-4">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <img src="{{ $store->logo_path ?? asset('images/default-store.png') }}" 
+                 alt="Store Logo" 
+                 class="rounded-circle border" 
+                 style="width: 100px; height: 100px; object-fit: cover;">
+        </div>
+        <div class="col">
+            <h2 class="fw-bold">{{ $store->name ?? 'Your Store Name' }}</h2>
+            <p class="text-muted mb-0">{{ $store->description ?? 'Add a nice description for your store here...' }}</p>
+        </div>
+        <div class="col-auto text-end">
+            <button class="btn btn-outline-secondary">Edit Store Profile</button>
+        </div>
+    </div>
+</div>
+
     <div class="d-flex justify-content-between align-items-center flex-wrap flex-md-nowrap pb-3 mb-4 border-bottom">
         <h1 class="h3 font-weight-bold">Seller Product Management</h1>
         <div class="d-flex gap-3 align-items-center">
@@ -29,6 +47,10 @@
 
     <div class="custom-card p-4">
         <h5 class="mb-4 font-weight-bold">Your Product Listings</h5>
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>New products are submitted for admin review and will only appear publicly after approval.</span>
+        </div>
         
         <div class="table-responsive">
             <table class="table align-middle">
@@ -45,12 +67,44 @@
                 <tbody>
                     @forelse($products as $product)
                         @php
-                            if ($product->image && file_exists(public_path($product->image))) {
-                                $productImageUrl = asset($product->image);
-                            } elseif ($product->image && file_exists(storage_path('app/public/' . str_replace('storage/', '', $product->image)))) {
-                                $productImageUrl = asset('storage/' . str_replace('storage/', '', $product->image));
-                            } else {
-                                $productImageUrl = asset('images/default-product.png'); 
+                            $productImageUrl = asset('storage/images/pet3.jpg');
+                            $imagePath = $product->image ?? '';
+
+                            if (!empty($imagePath)) {
+                                $normalizedImagePath = ltrim($imagePath, '/');
+                                $candidatePaths = [];
+
+                                if (str_starts_with($normalizedImagePath, 'images/')) {
+                                    $candidatePaths[] = 'storage/' . $normalizedImagePath;
+                                } elseif (str_starts_with($normalizedImagePath, 'storage/')) {
+                                    $candidatePaths[] = $normalizedImagePath;
+                                } else {
+                                    $candidatePaths[] = 'storage/' . $normalizedImagePath;
+                                }
+
+                                $candidatePaths[] = 'storage/images/products/' . basename($normalizedImagePath);
+                                $candidatePaths[] = 'images/products/' . basename($normalizedImagePath);
+                                $candidatePaths[] = 'storage/products/' . basename($normalizedImagePath);
+                                $candidatePaths[] = 'products/' . basename($normalizedImagePath);
+
+                                foreach ($candidatePaths as $candidatePath) {
+                                    if (file_exists(public_path($candidatePath))) {
+                                        $productImageUrl = asset($candidatePath);
+                                        break;
+                                    }
+
+                                    $storageCandidatePath = str_starts_with($candidatePath, 'storage/')
+                                        ? ltrim(substr($candidatePath, 8), '/')
+                                        : ltrim($candidatePath, '/');
+
+                                    if (file_exists(storage_path('app/public/' . $storageCandidatePath))) {
+                                        $publicCandidatePath = str_starts_with($candidatePath, 'storage/')
+                                            ? $candidatePath
+                                            : 'storage/' . $candidatePath;
+                                        $productImageUrl = asset($publicCandidatePath);
+                                        break;
+                                    }
+                                }
                             }
 
                             $categoryIcon = 'fa-paw';
@@ -71,14 +125,19 @@
                         @endphp
                         <tr>
                             <td class="ps-3">
-                                <button type="button" class="btn p-0 border-0 bg-transparent" onclick="showProductImageModal(@json($productImageUrl), @json($product->name))" data-bs-toggle="modal" data-bs-target="#productImageModal">
+                                <button type="button"
+                                        class="btn p-0 border-0 bg-transparent product-image-btn"
+                                        data-image-url="{{ $productImageUrl }}"
+                                        data-image-alt="{{ $product->name }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#productImageModal">
                                     <img src="{{ $productImageUrl }}" class="product-img-thum" alt="{{ $product->name }}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
                                 </button>
                             </td>
                             <td class="fw-bold">{{ $product->name }}</td>
                             <td>
                                 <span class="badge bg-secondary px-2.5 py-1.5">
-                                    <i class="fa-solid {{ $categoryIcon }} me-1"></i> {{ $product->category_name ?? 'General' }}
+                                    <i class="fa-solid {{ $categoryIcon }} me-1"></i> {{ $product->category_name ?? $product->category_display_name ?? 'General' }}
                                 </span>
                             </td>
                             <td>{{ $product->stock_quantity }}</td>
@@ -159,13 +218,28 @@
                                     <label class="form-label fw-bold">Pet Category</label>
                                     <select class="form-select" name="category_id" required>
                                         <option value="" selected disabled>Select Pet Category</option>
-                                        @forelse($categories as $category)
+                                        @forelse($petCategories as $category)
                                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                                         @empty
                                             <option value="1">Dog</option>
                                             <option value="2">Cat</option>
                                             <option value="3">Fish</option>
                                             <option value="4">Bird</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Product Category</label>
+                                    <select class="form-select" name="product_category" required>
+                                        <option value="" selected disabled>Select Product Category</option>
+                                        @forelse($productCategories as $category)
+                                            <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                        @empty
+                                            <option value="Food">Food</option>
+                                            <option value="Clothes">Clothes</option>
+                                            <option value="Accessories">Accessories</option>
+                                            <option value="Grooming Products">Grooming Products</option>
+                                            <option value="Medicine">Medicine</option>
                                         @endforelse
                                     </select>
                                 </div>
@@ -221,13 +295,27 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Pet Category</label>
                                     <select class="form-select" id="editCategory" name="category_id" required>
-                                        @forelse($categories as $category)
+                                        @forelse($petCategories as $category)
                                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                                         @empty
                                             <option value="1">Dog</option>
                                             <option value="2">Cat</option>
                                             <option value="3">Fish</option>
                                             <option value="4">Bird</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Product Category</label>
+                                    <select class="form-select" id="editProductCategory" name="product_category" required>
+                                        @forelse($productCategories as $category)
+                                            <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                        @empty
+                                            <option value="Food">Food</option>
+                                            <option value="Clothes">Clothes</option>
+                                            <option value="Accessories">Accessories</option>
+                                            <option value="Grooming Products">Grooming Products</option>
+                                            <option value="Medicine">Medicine</option>
                                         @endforelse
                                     </select>
                                 </div>
@@ -259,31 +347,38 @@
     // Robust Data-Attribute Event Binding Setup
     document.addEventListener('DOMContentLoaded', function () {
         const editButtons = document.querySelectorAll('.edit-product-btn');
+        const imageButtons = document.querySelectorAll('.product-image-btn');
         
         editButtons.forEach(button => {
             button.addEventListener('click', function () {
-                // Read clean dataset blocks directly out of DOM target parameters
                 const id = this.getAttribute('data-id');
                 const name = this.getAttribute('data-name');
                 const desc = this.getAttribute('data-description');
                 const category = this.getAttribute('data-category');
+                const productCategory = this.getAttribute('data-product-category');
                 const stocks = this.getAttribute('data-stocks');
                 const price = this.getAttribute('data-price');
                 const imageUrl = this.getAttribute('data-image');
 
-                // Fixed: Explicitly targets the full resource endpoint /seller/products/{id}
                 document.getElementById('editProductForm').action = '/seller/products/' + id;
-                
-                // Form assignment statements
                 document.getElementById('editName').value = name;
                 document.getElementById('editDescription').value = desc;
                 document.getElementById('editCategory').value = category;
+                document.getElementById('editProductCategory').value = productCategory;
                 document.getElementById('editStocks').value = stocks;
                 document.getElementById('editPrice').value = price;
                 
-                // Dynamic Image Preview Assignment
                 const previewElement = document.getElementById('editPreviewImage');
                 previewElement.src = imageUrl;
+            });
+        });
+
+        imageButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                showProductImageModal(
+                    this.getAttribute('data-image-url') || '',
+                    this.getAttribute('data-image-alt') || 'Product Preview'
+                );
             });
         });
     });

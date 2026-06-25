@@ -22,15 +22,21 @@ class DatabaseSeeder extends Seeder
             ['id' => 2, 'name' => 'Cat', 'slug' => 'cat', 'type' => 'pet', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 3, 'name' => 'Fish', 'slug' => 'fish', 'type' => 'pet', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 4, 'name' => 'Bird', 'slug' => 'bird', 'type' => 'pet', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 5, 'name' => 'Food', 'slug' => 'food', 'type' => 'product', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 6, 'name' => 'Clothes', 'slug' => 'clothes', 'type' => 'product', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 7, 'name' => 'Accessories', 'slug' => 'accessories', 'type' => 'product', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 8, 'name' => 'Grooming Products', 'slug' => 'grooming-products', 'type' => 'product', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 9, 'name' => 'Medicine', 'slug' => 'medicine', 'type' => 'product', 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         DB::table('users')->insertOrIgnore([
             ['id' => 1, 'name' => 'Seller Admin', 'email' => 'seller@example.com', 'password' => Hash::make('password'), 'role' => 'seller', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'Customer One', 'email' => 'buyer1@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 3, 'name' => 'Customer Two', 'email' => 'buyer2@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 4, 'name' => 'Customer Three', 'email' => 'buyer3@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 5, 'name' => 'Customer Four', 'email' => 'buyer4@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 6, 'name' => 'Customer Five', 'email' => 'buyer5@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 2, 'name' => 'Site Admin', 'email' => 'admin@example.com', 'password' => Hash::make('password'), 'role' => 'admin', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'name' => 'Customer One', 'email' => 'buyer1@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 4, 'name' => 'Customer Two', 'email' => 'buyer2@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 5, 'name' => 'Customer Three', 'email' => 'buyer3@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 6, 'name' => 'Customer Four', 'email' => 'buyer4@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 7, 'name' => 'Customer Five', 'email' => 'buyer5@example.com', 'password' => Hash::make('password'), 'role' => 'customer', 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         DB::table('products')->insertOrIgnore([

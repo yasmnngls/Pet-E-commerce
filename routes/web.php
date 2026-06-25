@@ -1,15 +1,19 @@
 ﻿<?php
 
+use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminDashBoardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OtsSellerProductController;
 use App\Http\Controllers\OtsSellerOrderController;
 use App\Http\Controllers\OtsSellerEarningsController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +23,9 @@ use App\Http\Controllers\VendorController;
 
 // Landing Page
 Route::get('/Home', [PageController::class, 'landing'])->name('landing');
+
+// Product Detail
+Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
 
 // Login Page
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -39,7 +46,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::redirect('/seller', '/seller/products');
 
-Route::prefix('seller')->group(function () {
+Route::prefix('seller')->middleware(['auth'])->group(function () {
     
     // Product Management Suite
     Route::get('/products', [OtsSellerProductController::class, 'index'])->name('seller.products');
@@ -60,6 +67,22 @@ Route::prefix('seller')->group(function () {
 //Order of Users
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index')->middleware('auth');
 
+// Cart
+Route::middleware(['auth'])->group(function () {
+    Route::get('/account-settings', [AccountSettingsController::class, 'edit'])->name('account.settings');
+    Route::post('/account-settings', [AccountSettingsController::class, 'update'])->name('account.settings.update');
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::patch('/cart/{id}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{id}', [CartController::class, 'remove'])->name('cart.remove');
+
+    // Checkout
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/confirmation/{id}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+});
+
 Route::prefix('apply/vendor')->group(function () {
         Route::get('/cancel', [VendorController::class, 'cancelApplication'])->name('vendor.cancel');
         
@@ -76,15 +99,13 @@ Route::prefix('apply/vendor')->group(function () {
         Route::post('/step-4', [VendorController::class, 'postStep4'])->name('vendor.step4.post');
     });
 
+// Clean explicit catalog filtering route asset link
+Route::get('/shop', [ProductController::class, 'catalog'])->name('products.catalog');
+
 // ADMIN ADMIN ADMIN //
 //Admin Hidden Routes
 Route::get('/backrooms/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/backrooms/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
-
-//Admin Dashboard (Only Accessible if user is admin)
-Route::get('/backrooms/dashboard', function(){
-    return "Welcome to the backrooms";
-})->name('admin.dashboard');
 
 //Admin Backrooms
 Route::middleware(['auth'])->prefix('backrooms')->group(function(){
@@ -93,8 +114,8 @@ Route::middleware(['auth'])->prefix('backrooms')->group(function(){
     Route::get('/dashboard', [AdminDashBoardController::class, 'index'])->name('admin.dashboard');
 
     //CRUD for User and Product
-    Route::post('/dashboard', [AdminDashboardController::class, 'updateUserRole'])->name('admin.users.updateRole');
-    Route::delete('/users/{id}', [AdminDashboardController::class, 'deleteUser'])->name('admin.users.delete');
+    Route::post('/dashboard', [AdminDashboardController::class, 'updateUserRole'])->name('admin.update.user.role');
+    Route::delete('/users/{id}', [AdminDashboardController::class, 'deleteUser'])->name('admin.delete.user');
     Route::delete('/products/{id}', [AdminDashBoardController::class, 'deleteProduct'])->name('admin.products.delete');
 
     //Admin Approval
