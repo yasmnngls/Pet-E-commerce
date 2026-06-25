@@ -118,9 +118,6 @@
         <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action py-3 border-0">
             <i class="bi bi-box-seam me-3 text-muted"></i> My Orders
         </a>
-        <a href="#" class="list-group-item list-group-item-action py-3 border-0">
-            <i class="bi bi-heart me-3 text-muted"></i> Wishlist
-        </a>
         <a href="{{ route('account.settings') }}" class="list-group-item list-group-item-action py-3 border-0">
             <i class="bi bi-gear me-3 text-muted"></i> Account Settings
         </a>

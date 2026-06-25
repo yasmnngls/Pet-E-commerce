@@ -35,7 +35,6 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-end mb-4">
         <h3 class="fw-bold mb-0 text-uppercase" style="color: brown;">Pet Essentials</h3>
-        <a href="#" class="text-decoration-none fw-medium" style="color: brown;">View All ></a>
     </div>
 
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 text-center">
@@ -91,7 +90,6 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-end mb-4">
         <h3 class="fw-bold mb-0 text-uppercase" style="color: brown;">Best Sellers</h3>
-        <a href="#" class="text-decoration-none fw-medium" style="color: brown;">Shop More ></a>
     </div>
 
     @if(session('success'))
